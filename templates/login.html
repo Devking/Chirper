@@ -17,6 +17,11 @@
 		<form method="POST">
 			<input type="text" name="username" placeholder="Username"></input><br />
 			<input type="password" name="password" placeholder="Password"></input><br />
+
+			{% if loginfail %}
+			<span class="loginfail">Login failed</span><br />
+			{% endif %}
+
    			<input type="submit" value="Log In"></input>
 		</form>
 
