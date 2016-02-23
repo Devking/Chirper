@@ -12,7 +12,7 @@ chirps = [
 			},
 			{
 				'author': 'Kanye',
-				'message': 'Invest In Kanye Ideas'
+				'message': 'Invest In Kanye West Ideas'
 			}
 		 ]
 
