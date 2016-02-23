@@ -1,0 +1,31 @@
+html, body {
+	padding: 0;
+	margin: 0;
+	font-family: 'Montserrat', sans-serif;
+}
+
+.page {
+	width: 1000px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.content {
+	width: 800px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.content .chirp {
+	border: 1px solid black;
+	padding: 10px;
+	margin: 10px;
+}
+
+.content .chirp .author {
+	border-bottom: 1px dotted black;
+}
+
+.content .chirp .message {
+	padding-top: 10px;
+}

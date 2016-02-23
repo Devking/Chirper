@@ -22,6 +22,9 @@ html, body {
 	padding: 10px;
 	text-align: center;
 
+	-moz-border-radius: 10px;
+	     border-radius: 10px;
+
 	/*For horizontal centering*/
 	margin-left: auto;
 	margin-right: auto;
