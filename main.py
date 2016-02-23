@@ -12,13 +12,13 @@ app = Flask(__name__)
 # Splash page for the web application
 @app.route('/')
 # Still need to add functionality to detect incorrect login...
-def splash(loginstatus = False):
+def splash():
 
 	# Check if someone is already logged in
 	if 'username' in session:
 		return redirect(url_for('home'))
 
-	return render_template("login.html", loginstatus = loginstatus)
+	return render_template("login.html", loginfailed = request.args.get('loginfailed'))
 
 # Login page to handle logging in
 @app.route('/login', methods=['POST', 'GET'])
@@ -39,7 +39,8 @@ def login():
 			return redirect(url_for('home'))
 
 	# If no POST request, or login is unsuccessful, redirect to splash
-	return redirect(url_for('splash'))
+	# Note that this passes 'loginfailed' through the URL...
+	return redirect(url_for('splash', loginfailed = True))
 
 # Registration page for making new accounts
 @app.route('/register')
@@ -48,14 +49,20 @@ def reg():
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
+	print 'routing...'
+
 	if request.method == 'POST':
 		username = request.form["username"]
 
 		# If this is a new user, add to the user table
 		if username not in users.keys():
+			print 'New User'
 			return 'Registration Successful!'
 		else:
+			# This means that user already exists -- does this persist the POST?
+			print 'User Fail'
 			return render_template("register.html", regfail = True)
+
 	# If someone landed here not on a POST request, send back to register page
 	return render_template("register.html", regfail = False)
 
@@ -84,4 +91,4 @@ def logout():
 app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1a\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
 
 # Run the Flask application
-app.run("127.0.0.1", 8000, debug = True)
+app.run("192.168.0.15", 8000, debug = True)
