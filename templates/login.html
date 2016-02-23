@@ -14,12 +14,12 @@
 		<h1>chirper.</h1>
 		<h2>we're not <em>that</em> original.</h2>
 
-		<form method="POST">
+		<form method="POST" action="/login">
 			<input type="text" name="username" placeholder="Username"></input><br />
 			<input type="password" name="password" placeholder="Password"></input><br />
 
-			{% if loginfail %}
-			<span class="loginfail">Login failed</span><br />
+			{% if loginstatus %}
+			<span class="loginstatus">Login failed</span><br />
 			{% endif %}
 
    			<input type="submit" value="Log In"></input>

@@ -48,7 +48,7 @@ html, body {
 	color: white;
 }
 
-.central-float .loginfail {
+.central-float .loginstatus {
 	color: red;
 	margin: 10px;
 }

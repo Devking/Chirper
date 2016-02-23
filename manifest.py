@@ -1,6 +1,7 @@
 # Currently this is just for debugging
 # This information should go in a text file or database
 
+# Flask's templates automatically escape the HTML -- no need to worry about injection
 users = {
             'admin': {
                 'password': 'pass',
@@ -8,7 +9,7 @@ users = {
                 'chirps': [
                             {
                                 'author': 'Gary',
-                                'message': 'Hello'
+                                'message': '<b>Hello</b>'
                             },
                             {
                                 'author': 'Kanye',
