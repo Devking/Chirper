@@ -7,7 +7,7 @@
 	<title>Title</title>
 
 	<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="style.css" />
+	<link rel="stylesheet" href="/static/style.css" />
 
 </head>
 <body>
@@ -16,10 +16,13 @@
 		<h1>chirper.</h1>
 		<h2>we're not <em>that</em> original.</h2>
 
-		<form action="/">
-
+		<form method="POST">
+			<input type="text" name="username" placeholder="Username"></input><br />
+			<input type="password" name="password" placeholder="Password"></input><br />
+   			<input type="submit" value="Log In"></input>
 		</form>
 
+		<a href="#">Create Account</a>
 
 	</div>
 

@@ -7,7 +7,7 @@ html, body {
 	height: 100%;
 	min-height: 200px;
 
-	background: url('/static/yosemitebg.jpg') no-repeat center center fixed;
+	background: url('yosemitebg.jpg') no-repeat center center fixed;
 
 	/*For full-window background*/
 	-webkit-background-size: cover;
