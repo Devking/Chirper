@@ -1,0 +1,5 @@
+- log in
+- users & passwords
+- registration & deletion
+- write/send messages to particular other users
+- delete messages
