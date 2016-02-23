@@ -11,6 +11,7 @@ app = Flask(__name__)
 
 # Splash page for the web application
 @app.route('/')
+# Still need to add functionality to detect incorrect login...
 def splash(loginstatus = False):
 
 	# Check if someone is already logged in
@@ -43,7 +44,20 @@ def login():
 # Registration page for making new accounts
 @app.route('/register')
 def reg():
-	return render_template("register.html")
+	return render_template("register.html", regfail = False)
+
+@app.route('/checkregistration', methods=['POST', 'GET'])
+def checkreg():
+	if request.method == 'POST':
+		username = request.form["username"]
+
+		# If this is a new user, add to the user table
+		if username not in users.keys():
+			return 'Registration Successful!'
+		else:
+			return render_template("register.html", regfail = True)
+	# If someone landed here not on a POST request, send back to register page
+	return render_template("register.html", regfail = False)
 
 # Home page after logged in
 @app.route('/home')
