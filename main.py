@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # Splash page for the web application
 @app.route('/')
-def hello(loginstatus = False):
+def splash(loginstatus = False):
 
 	# Check if someone is already logged in
 	if 'username' in session:
@@ -22,6 +22,8 @@ def hello(loginstatus = False):
 # Login page to handle logging in
 @app.route('/login', methods=['POST', 'GET'])
 def login():
+
+	# Check if a POST request is being made
 	if request.method == 'POST':
 
 		username = request.form["username"]
@@ -31,12 +33,12 @@ def login():
 			
 			# Add to current session
 			session['username'] = username
-			session['chirps'] = users[username]['chirps']
 
 			# Redirect to home page after login
 			return redirect(url_for('home'))
 
-	return redirect(url_for('hello'))
+	# If no POST request, or login is unsuccessful, redirect to splash
+	return redirect(url_for('splash'))
 
 # Registration page for making new accounts
 @app.route('/register')
@@ -49,12 +51,12 @@ def home():
 
 	# If there's no active session, redirect back to splash page
 	if 'username' not in session:
-		return redirect(url_for('hello'))
+		return redirect(url_for('splash'))
 
 	# Otherwise, generate the home page
 	return render_template("verify.html",
 			               username = session['username'],
-			               chirps   = session['chirps'])
+			               chirps   = users[session['username']]['chirps'])
 
 # Logout
 @app.route('/logout')
@@ -62,7 +64,7 @@ def logout():
 	# Clear the session
 	session.clear()
 	# Redirect back to the splash page
-	return redirect(url_for('hello'))
+	return redirect(url_for('splash'))
 
 # Set secret key for sessions
 app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1a\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
