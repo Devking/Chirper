@@ -4,6 +4,7 @@
 users = {
             'admin': {
                 'password': 'pass',
+                'email': 'admin@admin.com',
                 'chirps': [
                             {
                                 'author': 'Gary',
@@ -15,8 +16,10 @@ users = {
                             }
                 ]
             },
+
             'bob': {
                 'password': 'dole',
+                'email': 'bob@dole.com',
                 'chirps': [
                             {
                                 'author': 'bob',
