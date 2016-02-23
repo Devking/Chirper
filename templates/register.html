@@ -9,9 +9,10 @@
     <link rel="stylesheet" href="/static/login.css" />
 </head>
 <body>
-    <div class="central-float" action="/checkregistration">
+    <div class="central-float">
         <h1>Register</h1>
-        <form method="POST">
+        <form method="POST" action="/checkregistration">
+            <input type="text" name="email" placeholder="Email"></input><br />
             <input type="text" name="username" placeholder="Username"></input><br />
             <input type="password" name="password" placeholder="Password"></input><br />
             {% if regfail %}

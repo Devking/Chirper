@@ -34,6 +34,8 @@ def login():
 			
 			# Add to current session
 			session['username'] = username
+			# Persist the session across closed windows
+			session.permanent = True
 
 			# Redirect to home page after login
 			return redirect(url_for('home'))
@@ -49,18 +51,20 @@ def reg():
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
-	print 'routing...'
-
 	if request.method == 'POST':
 		username = request.form["username"]
 
-		# If this is a new user, add to the user table
+		# If this is a new user, add them to the user table
 		if username not in users.keys():
-			print 'New User'
-			return 'Registration Successful!'
+
+			users[username] = {
+				'password': request.form["password"],
+				'email': request.form["email"],
+				'chirps': []
+			}
+			return render_template("regsuccess.html")
+
 		else:
-			# This means that user already exists -- does this persist the POST?
-			print 'User Fail'
 			return render_template("register.html", regfail = True)
 
 	# If someone landed here not on a POST request, send back to register page
@@ -77,6 +81,7 @@ def home():
 	# Otherwise, generate the home page
 	return render_template("verify.html",
 			               username = session['username'],
+			               email    = users[session['username']]['email'],
 			               chirps   = users[session['username']]['chirps'])
 
 # Logout
@@ -92,3 +97,5 @@ app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1a\xd8\xd2Q\x8e\xe0z\x8d\x
 
 # Run the Flask application
 app.run("192.168.0.15", 8000, debug = True)
+
+# Note: If you restart the 'server' while someone is accessing a session, bad things happen
