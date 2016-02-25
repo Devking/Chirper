@@ -49,11 +49,15 @@ def reg():
 	# Check if someone is already logged in
 	if 'username' in session:
 		return redirect(url_for('home'))
-		
+
 	return render_template("register.html", regfail = False)
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
+	# Check if someone is already logged in
+	if 'username' in session:
+		return redirect(url_for('home'))
+
 	if request.method == 'POST':
 		username = request.form["username"]
 
