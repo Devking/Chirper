@@ -33,3 +33,5 @@ users = {
                 ]
             }
         }
+
+emails = {'admin@admin.com', 'bob@dole.com'}
