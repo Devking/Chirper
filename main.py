@@ -11,7 +11,6 @@ app = Flask(__name__)
 
 # Splash page for the web application
 @app.route('/')
-# Still need to add functionality to detect incorrect login...
 def splash():
 
 	# Check if someone is already logged in
@@ -31,7 +30,7 @@ def login():
 
 		# Login is successful
 		if username in users.keys() and users[username]["password"] == request.form["password"]:
-			
+
 			# Add to current session
 			session['username'] = username
 			# Persist the session across closed windows
@@ -96,6 +95,6 @@ def logout():
 app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1a\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
 
 # Run the Flask application
-app.run("192.168.0.15", 8000, debug = True)
+app.run("localhost", 8000, debug = True)
 
 # Note: If you restart the 'server' while someone is accessing a session, bad things happen
