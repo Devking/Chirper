@@ -46,6 +46,10 @@ def login():
 # Registration page for making new accounts
 @app.route('/register')
 def reg():
+	# Check if someone is already logged in
+	if 'username' in session:
+		return redirect(url_for('home'))
+		
 	return render_template("register.html", regfail = False)
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
