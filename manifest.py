@@ -6,31 +6,15 @@ users = {
             'admin': {
                 'password': 'pass',
                 'email': 'admin@admin.com',
-                'chirps': [
-                            {
-                                'author': 'Gary',
-                                'message': '<b>Hello</b>'
-                            },
-                            {
-                                'author': 'Kanye',
-                                'message': 'Invest In Kanye West Ideas'
-                            }
-                ]
+                'chirps': ['<b>Hello</b>', 'Invest In Kanye West Ideas'],
+                'friends': ['bob']
             },
 
             'bob': {
                 'password': 'dole',
                 'email': 'bob@dole.com',
-                'chirps': [
-                            {
-                                'author': 'bob',
-                                'message': 'Hi'
-                            },
-                            {
-                                'author': 'Someone',
-                                'message': 'something'
-                            }
-                ]
+                'chirps': ['Hi', 'something'],
+                'friends': []
             }
         }
 

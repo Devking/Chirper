@@ -20,11 +20,13 @@
 		<h2>Post a chirp:</h2>
 
 		<div class="content">
-			{% for chirp in chirps %}
-			<div class="chirp">
-				<div class="author">{{ chirp.author }}</div>
-				<div class="message">{{ chirp.message }}</div>
-			</div>
+			{% for user in chirps %}
+				{% for chirp in user.chirps %}
+				<div class="chirp">
+					<div class="author">{{ user.author }}</div>
+					<div class="message">{{ chirp }}</div>
+				</div>
+				{% endfor %}
 			{% endfor %}
 		</div>
 	</div>

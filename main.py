@@ -81,11 +81,22 @@ def home():
     if 'username' not in session:
         return redirect(url_for('splash'))
 
+    # Retrieve chirps of user and user's friends
+    allChirps = [{
+                      'author': session['username'],
+                      'chirps': users[session['username']]['chirps']
+                 }]
+    for friend in users[session['username']]['friends']:
+        allChirps.append({
+                              'author': friend,
+                              'chirps': users[friend]['chirps']
+                         })
+
     # Otherwise, generate the home page
     return render_template("verify.html",
         username = session['username'],
         email    = users[session['username']]['email'],
-        chirps   = users[session['username']]['chirps'])
+        chirps   = allChirps)
 
 # Logout
 @app.route('/logout')
