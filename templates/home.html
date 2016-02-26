@@ -7,6 +7,8 @@
 
 	<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="/static/home.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+	<script src="/static/home.js"></script>
 </head>
 <body>
 
@@ -14,7 +16,7 @@
 
 		<div class="header">
 			<div class="username">Hello, <b>{{username}}</b> ({{email}}).</div>
-			<div class="delete-user"><a href="/deleteaccount">Delete User</a></div>
+			<div class="delete-user"><a class="fn-delete">Delete User</a></div>
 			<div class="logout"><a href="/logout">Logout</a></div>
 			<div class="clear"></div>
 		</div>
