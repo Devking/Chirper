@@ -126,7 +126,6 @@ def home():
 @app.route('/postchirp', methods=['POST', 'GET'])
 def postchirp():
     if request.method == 'POST':
-        # Need to add logic to strip whitespace and check validity after
         if request.form["chirp"].strip() != '':
             users[session['username']]['chirps'].insert(0, request.form["chirp"])
         else:
