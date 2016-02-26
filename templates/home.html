@@ -71,7 +71,12 @@
 					This user has no chirps.
 					{% endif %}
 					{% for chirp in user.chirps %}
-					<div class="message">{{ chirp }}</div>
+						<div class="message">
+						{{ chirp }}
+						{% if user.author == username %}
+							(<a href="/deletechirp/{{ loop.index0 }}>">Delete Chirp</a>)
+						{% endif %}
+						</div>
 					{% endfor %}
 				</div>
 			{% endfor %}

@@ -133,6 +133,16 @@ def postchirp():
             return redirect(url_for('home', emptychirp = True))
     return redirect(url_for('home'))
 
+# Delete a chirp
+@app.route('/deletechirp/<chirp_id>')
+def deletechirp(chirp_id):
+    if 'username' in session:
+        # For some reason, Jinja's loop.index0 appends "%3E" to the end of the URL
+        # So we need to get rid of that last character
+        chirp_id = int(chirp_id[:-1])
+        users[session['username']]['chirps'].pop(chirp_id)
+    return redirect(url_for('home'))
+
 # Adding a friend
 @app.route('/addfriend', methods=['POST', 'GET'])
 def addfriend():

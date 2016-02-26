@@ -8,4 +8,4 @@
 - delete message
 
 - follow people - done
-- unfollow people ()
+- unfollow people - done
