@@ -17,7 +17,7 @@ def splash():
     if 'username' in session:
         return redirect(url_for('home'))
 
-    return render_template("login.html", loginfailed = request.args.get('loginfailed'))
+    return render_template("login.html", loginfailed = request.args.get('loginfailed'), deletedaccount = request.args.get('deletedaccount'))
 
 # Login page to handle logging in
 @app.route('/login', methods=['POST', 'GET'])
@@ -157,10 +157,13 @@ def logout():
 # Delete account
 @app.route('/deleteaccount')
 def deleteaccount():
-    emails.remove(users[session['username']]['email'])
-    del users[session['username']]
-    session.clear()
-    return redirect(url_for('splash'))
+    deletesuccess = False
+    if 'username' in session:
+        emails.remove(users[session['username']]['email'])
+        del users[session['username']]
+        session.clear()
+        deletesuccess = True
+    return redirect(url_for('splash', deletedaccount = deletesuccess))
 
 # Set secret key for sessions
 app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1b\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'

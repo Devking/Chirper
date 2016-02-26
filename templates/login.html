@@ -21,6 +21,9 @@
 			{% if loginfailed %}
 			<span class="loginstatus">Login failed</span><br />
 			{% endif %}
+			{% if deletedaccount %}
+			<span class="loginstatus">Account Successfully Deleted</span><br />
+			{% endif %}
 
    			<input type="submit" value="Log In"></input>
 		</form>
