@@ -9,38 +9,34 @@ from manifest import users, emails
 # Create the Flask object
 app = Flask(__name__)
 
-# Splash page for the web application
+# Splash/Login page
 @app.route('/')
 def splash():
-
     # Check if someone is already logged in
     if 'username' in session:
         return redirect(url_for('home'))
 
-    return render_template("login.html", loginfailed = request.args.get('loginfailed'), deletedaccount = request.args.get('deletedaccount'))
+    return render_template("login.html", 
+                            loginfailed = request.args.get('loginfailed'), 
+                            deletedaccount = request.args.get('deletedaccount'))
 
-# Login page to handle logging in
+# Redirect for login POST logic
 @app.route('/login', methods=['POST', 'GET'])
 def login():
-
-    # Check if a POST request is being made
     if request.method == 'POST':
-
         username = request.form["username"]
 
-        # Login is successful
+        # Check if login is successful
         if username in users.keys() and users[username]["password"] == request.form["password"]:
-
             # Add to current session
             session['username'] = username
-            # Persist the session across closed windows
+            # Persist the session across closed windows (on the same browser)
             session.permanent = True
-
             # Redirect to home page after login
             return redirect(url_for('home'))
 
     # If no POST request, or login is unsuccessful, redirect to splash
-    # Note that this passes 'loginfailed' through the URL...
+    # Note that this passes 'loginfailed' through the URL
     return redirect(url_for('splash', loginfailed = True))
 
 # Registration page for making new accounts
@@ -49,10 +45,9 @@ def reg():
     # Check if someone is already logged in
     if 'username' in session:
         return redirect(url_for('home'))
-
     return render_template("register.html")
 
-# Check registration validity
+# Check registration POST validity
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
     # Check if someone is already logged in
@@ -60,13 +55,15 @@ def checkreg():
         return redirect(url_for('home'))
 
     if request.method == 'POST':
-        # Check for valid registration fields
         username = request.form["username"]
         enteredemail = request.form["email"]
+        # Check for duplicate user/email
         if username in users.keys() or enteredemail in emails:
             return render_template("register.html", regfail = True)
+        # Check for spaces and tabs in user/email (we disallow these)
         if ' ' in username or ' ' in enteredemail or '\t' in username or '\t' in enteredemail:
             return render_template("register.html", spacereg = True)
+        # Check for empty username/password/email
         if username != '' and request.form["password"] != '' and enteredemail != '':
             users[username] = {
                 'password': request.form["password"],
@@ -79,18 +76,17 @@ def checkreg():
         else:
             return render_template("register.html", emptyreg = True)
 
-    # If someone landed here not on a POST request, send back to register page
+    # If someone landed here not on a POST request, send them back to register page
     return render_template("register.html")
 
-# Home page after logged in
+# Home page after being logged in
 @app.route('/home')
 def home():
-
-    # If there's no active session, redirect back to splash page
+    # If there's no active session, redirect back to splash/login page
     if 'username' not in session:
         return redirect(url_for('splash'))
 
-    # Retrieve chirps of user
+    # Retrieve chirps of this user
     allchirps = [{
                       'author': session['username'],
                       'chirps': users[session['username']]['chirps']
@@ -203,4 +199,4 @@ def deleteaccount():
 app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1b\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
 
 # Run the Flask application
-app.run("localhost", 8000, debug = True)
+app.run("localhost", 8000, debug = False)
