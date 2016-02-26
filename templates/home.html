@@ -66,7 +66,11 @@
 				No friends
 				{% endif %}
 				{% for friend in friends %}
-				<span class="friend">{{ friend }} (<a href="/unfollow/{{ friend }}">Unfollow</a>)</span><br />
+				<span class="friend">
+					{{ friend }} (<a href="/unfollow/{{ friend }}">Unfollow</a>)
+					{% if loop.index0 != 0 %}<a href="/moveup/{{ loop.index0 }}">&uarr;</a>{% endif %}
+					{% if loop.index0 != friends|length - 1 %}<a href="/movedown/{{ loop.index0 }}">&darr;</a>{% endif %}
+				</span><br />
 				{% endfor %}
 			</div>
 		</div>

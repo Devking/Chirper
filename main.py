@@ -165,6 +165,26 @@ def unfollow(user):
             users[session['username']]['friends'].remove(user)
     return redirect(url_for('home'))
 
+# Move a friend up the list
+@app.route('/moveup/<user_id>')
+def moveup(user_id):
+    if 'username' in session and user_id.isdigit():
+        user_id = int(user_id)
+        if user_id > 0 and user_id < len(users[session['username']]['friends']):
+            users[session['username']]['friends'][user_id], users[session['username']]['friends'][user_id - 1] = \
+                users[session['username']]['friends'][user_id - 1], users[session['username']]['friends'][user_id]
+    return redirect(url_for('home'))
+
+# Move a friend down the list
+@app.route('/movedown/<user_id>')
+def movedown(user_id):
+    if 'username' in session and user_id.isdigit():
+        user_id = int(user_id)
+        if user_id > -1 and user_id < len(users[session['username']]['friends']) - 1:
+            users[session['username']]['friends'][user_id], users[session['username']]['friends'][user_id + 1] = \
+                users[session['username']]['friends'][user_id + 1], users[session['username']]['friends'][user_id]
+    return redirect(url_for('home'))
+
 # Logout
 @app.route('/logout')
 def logout():
