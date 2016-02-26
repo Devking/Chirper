@@ -48,10 +48,14 @@ def login():
 # Registration page for making new accounts
 @app.route('/register')
 def reg():
+    if 'username' in session:
+        return redirect(url_for('home'))
     return render_template("register.html", regfail = False)
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
+    if 'username' in session:
+        return redirect(url_for('home'))
     if request.method == 'POST':
         username = request.form["username"]
 
@@ -65,7 +69,8 @@ def checkreg():
             users[username] = {
                 'password': request.form["password"],
                 'email': enteredEmail,
-                'chirps': []
+                'chirps': [],
+                'friends': []
             }
             emails.add(enteredEmail)
             return render_template("regsuccess.html")
@@ -97,6 +102,14 @@ def home():
         username = session['username'],
         email    = users[session['username']]['email'],
         chirps   = allChirps)
+
+# Posting a chirp
+@app.route('/postchirp', methods=['POST', 'GET'])
+def postchirp():
+    if request.method == 'POST':
+        users[session['username']]['chirps'].insert(0, request.form["chirp"])
+    return redirect(url_for('home'))
+    
 
 # Logout
 @app.route('/logout')
