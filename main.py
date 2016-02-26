@@ -52,6 +52,7 @@ def reg():
 
     return render_template("register.html", regfail = False)
 
+# Check registration validity
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
     # Check if someone is already logged in
@@ -92,28 +93,34 @@ def home():
     if 'username' not in session:
         return redirect(url_for('splash'))
 
-    # Retrieve chirps of user and user's friends
+    # Retrieve chirps of user
     allchirps = [{
                       'author': session['username'],
                       'chirps': users[session['username']]['chirps']
                  }]
+
+    # Retrieve chirps of user's friends
     for friend in users[session['username']]['friends']:
-        allchirps.append({
-                              'author': friend,
-                              'chirps': users[friend]['chirps']
-                         })
+        # Check first if the user exists; if not, remove the user from the friend's list
+        if friend in users.keys():
+            allchirps.append({
+                                  'author': friend,
+                                  'chirps': users[friend]['chirps']
+                             })
+        else:
+            users[session['username']]['friends'].remove(friend)
 
     # Otherwise, generate the home page
     return render_template("home.html",
-        username = session['username'],
-        email    = users[session['username']]['email'],
-        friends  = users[session['username']]['friends'],
-        chirps   = allchirps,
-        emptychirp = request.args.get('emptychirp'),
-        emptyfriend = request.args.get('emptyfriend'),
-        addyourself = request.args.get('addyourself'),
-        friendnotfound = request.args.get('friendnotfound'),
-        alreadyfriends = request.args.get('alreadyfriends'))
+                            username       = session['username'],
+                            email          = users[session['username']]['email'],
+                            friends        = users[session['username']]['friends'],
+                            chirps         = allchirps,
+                            emptychirp     = request.args.get('emptychirp'),
+                            emptyfriend    = request.args.get('emptyfriend'),
+                            addyourself    = request.args.get('addyourself'),
+                            friendnotfound = request.args.get('friendnotfound'),
+                            alreadyfriends = request.args.get('alreadyfriends'))
 
 # Posting a chirp
 @app.route('/postchirp', methods=['POST', 'GET'])
@@ -144,6 +151,12 @@ def addfriend():
 # Logout
 @app.route('/logout')
 def logout():
+    session.clear()
+    return redirect(url_for('splash'))
+
+# Delete account
+@app.route('/deleteaccount')
+def deleteaccount():
     session.clear()
     return redirect(url_for('splash'))
 

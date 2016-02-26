@@ -2,10 +2,10 @@
 - log out - done
 
 - registration - done
-- deletion
+- deletion (need to remove from list, deleting off others' list is done)
 
-- write message
+- write message - done
 - delete message
 
-- follow people
+- follow people - done
 - unfollow people
