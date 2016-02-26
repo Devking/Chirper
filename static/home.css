@@ -17,6 +17,7 @@ html, body {
 
 .page a {
 	text-decoration: none;
+	color: orange;
 }
 
 .page a:hover {
