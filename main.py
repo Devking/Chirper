@@ -65,7 +65,7 @@ def checkreg():
         enteredemail = request.form["email"]
         if username in users.keys() or enteredemail in emails:
             return render_template("register.html", regfail = True)
-        if ' ' in username or ' ' in enteredemail:
+        if ' ' in username or ' ' in enteredemail or '\t' in username or '\t' in enteredemail:
             return render_template("register.html", spacereg = True)
         if username != '' and request.form["password"] != '' and enteredemail != '':
             users[username] = {
@@ -77,7 +77,7 @@ def checkreg():
             emails.add(enteredemail)
             return render_template("regsuccess.html")
         else:
-            return render_template("register.html", emptyreg = True)      
+            return render_template("register.html", emptyreg = True)
 
     # If someone landed here not on a POST request, send back to register page
     return render_template("register.html")
