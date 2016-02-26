@@ -148,6 +148,14 @@ def addfriend():
         users[session['username']]['friends'].append(request.form["friend"])
     return redirect(url_for('home'))
 
+# Unfollow a friend
+@app.route('/unfollow/<user>')
+def unfollow(user):
+    if 'username' in session:
+        if user in users[session['username']]['friends']:
+            users[session['username']]['friends'].remove(user)
+    return redirect(url_for('home'))
+
 # Logout
 @app.route('/logout')
 def logout():

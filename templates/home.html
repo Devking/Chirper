@@ -54,7 +54,7 @@
 			No friends
 			{% endif %}
 			{% for friend in friends %}
-			<span class="friend">{{ friend }}</span><br />
+			<span class="friend">{{ friend }} (<a href="/unfollow/{{ friend }}">Unfollow</a>)</span><br />
 			{% endfor %}
 		</div>
 

@@ -2,7 +2,7 @@
 - log out - done
 
 - registration - done
-- deletion (need to remove from list, deleting off others' list is done)
+- deletion - done
 
 - write message - done
 - delete message
