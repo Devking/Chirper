@@ -22,6 +22,9 @@
             {% if emptyreg %}
             <span class="loginstatus">You Can't Have Blank Fields!</span><br />
             {% endif %}
+            {% if spacereg %}
+            <span class="loginstatus">You Can't Use Spaces in Usernames or Emails!</span><br />
+            {% endif %}
             <input type="submit" value="Create Account"></input>
         </form>
         <a href="/">Return to Login</a>

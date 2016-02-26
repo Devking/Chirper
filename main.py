@@ -50,7 +50,7 @@ def reg():
     if 'username' in session:
         return redirect(url_for('home'))
 
-    return render_template("register.html", regfail = False)
+    return render_template("register.html")
 
 # Check registration validity
 @app.route('/checkregistration', methods=['POST', 'GET'])
@@ -60,30 +60,27 @@ def checkreg():
         return redirect(url_for('home'))
 
     if request.method == 'POST':
+        # Check for valid registration fields
         username = request.form["username"]
-
-        # If this is a new user, add them to the user table
-        if username not in users.keys():
-            enteredemail = request.form["email"]
-            if enteredemail not in emails:
-                if username != '' and request.form["password"] != '' and enteredemail != '':
-                    users[username] = {
-                        'password': request.form["password"],
-                        'email': enteredemail,
-                        'chirps': [],
-                        'friends': []
-                    }
-                    emails.add(enteredemail)
-                    return render_template("regsuccess.html")
-                else:
-                    return render_template("register.html", regfail = False, emptyreg = True)
-            else:
-                return render_template("register.html", regfail = True, emptyreg = False)
+        enteredemail = request.form["email"]
+        if username in users.keys() or enteredemail in emails:
+            return render_template("register.html", regfail = True)
+        if ' ' in username or ' ' in enteredemail:
+            return render_template("register.html", spacereg = True)
+        if username != '' and request.form["password"] != '' and enteredemail != '':
+            users[username] = {
+                'password': request.form["password"],
+                'email': enteredemail,
+                'chirps': [],
+                'friends': []
+            }
+            emails.add(enteredemail)
+            return render_template("regsuccess.html")
         else:
-            return render_template("register.html", regfail = True, emptyreg = False)
+            return render_template("register.html", emptyreg = True)      
 
     # If someone landed here not on a POST request, send back to register page
-    return render_template("register.html", regfail = False)
+    return render_template("register.html")
 
 # Home page after logged in
 @app.route('/home')
