@@ -23,48 +23,62 @@
 
 		<div class="chirper">
 			<form method="POST" action="/postchirp">
-				<input type="text" autocomplete="off" class="fn-chirp-field" name="chirp" size="125" maxlength="100" placeholder="What's happening on your mind?"></input>
-				<span class="fn-chirp-count">100</span><input type="submit" value="Chirp!"></input>
+				<div class="chirp-center">
+					<input type="text" autocomplete="off" class="fn-chirp-field chirp-field" name="chirp" maxlength="100" placeholder="What's happening on your mind?"></input>
+					<div class="chirp-error">
+					{% if emptychirp %}
+					Can't chirp nothing!
+					{% endif %}
+					</div>
+					<div class="chirp-stats">
+						<span class="fn-chirp-count">100</span>
+						<input type="submit" value="Chirp!"></input>
+					</div>
+				</div>
+				<div class="clear"></div>
 			</form>
-			{% if emptychirp %}
-			Can't chirp nothing!<br />
-			{% endif %}
-			<br />
-			<form method="POST" action="/addfriend">
-				<input type="text" name="friend" maxlength="20" placeholder="Username"></input>
-				<input type="submit" value="Add friend"></input>
-			</form>
-			{% if friendnotfound %}
-			User doesn't exist!<br />
-			{% endif %}
-			{% if alreadyfriends %}
-			Already friends with user!<br />
-			{% endif %}
-			{% if addyourself %}
-			Can't add yourself!<br />
-			{% endif %}
-			{% if emptyfriend %}
-			Can't add blank user!<br />
-			{% endif %}
 		</div>
 
 		<div class="friends-list">
 			<h1>Friends List</h1>
-			{% if friends|length == 0 %}
-			No friends
-			{% endif %}
-			{% for friend in friends %}
-			<span class="friend">{{ friend }} (<a href="/unfollow/{{ friend }}">Unfollow</a>)</span><br />
-			{% endfor %}
+
+			<div class="add-friend">
+				<form method="POST" action="/addfriend">
+					<input type="text" name="friend" maxlength="20" placeholder="Username"></input>
+					<input type="submit" value="Add friend"></input>
+				</form>
+				{% if friendnotfound %}
+				User doesn't exist!<br />
+				{% endif %}
+				{% if alreadyfriends %}
+				Already friends with user!<br />
+				{% endif %}
+				{% if addyourself %}
+				Can't add yourself!<br />
+				{% endif %}
+				{% if emptyfriend %}
+				Can't add blank user!<br />
+				{% endif %}
+			</div>
+
+			<div class="friends">
+				{% if friends|length == 0 %}
+				No friends
+				{% endif %}
+				{% for friend in friends %}
+				<span class="friend">{{ friend }} (<a href="/unfollow/{{ friend }}">Unfollow</a>)</span><br />
+				{% endfor %}
+			</div>
 		</div>
 
 		<div class="chirp-content">
 			{% for user in chirps %}
 				<div class="chirp-user">
 					<div class="author">
-						{{ user.author }}
 						{% if user.author == username %}
-						(You)
+						<h1>Your Chirps</h1>
+						{% else %}
+						<h1>{{ user.author }}</h1>
 						{% endif %}
 					</div>
 					{% if user.chirps|length == 0 %}

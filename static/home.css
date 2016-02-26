@@ -63,6 +63,24 @@ html, body {
 	border-bottom: 1px solid black;
 }
 
+.chirper .chirp-center {
+	margin-left: auto;
+	margin-right: auto;
+	width: 600px;
+}
+
+.chirper .chirp-error {
+	float: left;
+}
+
+.chirper .chirp-field {
+	width: 600px;
+}
+
+.chirper .chirp-stats {
+	float: right;
+}
+
 .friends-list {
 	float: left;
 	width: 200px;
@@ -75,6 +93,16 @@ html, body {
 	padding: 0;
 	margin: 0;
 	border-bottom: 1px dotted black;
+}
+
+.friends-list .add-friend {
+	padding: 10px;
+	text-align: center;
+	border-bottom: 1px dotted black;
+}
+
+.friends-list .friends {
+	padding-top: 10px;
 }
 
 .chirp-content {
