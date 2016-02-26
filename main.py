@@ -66,7 +66,7 @@ def checkreg():
         if username not in users.keys():
             enteredemail = request.form["email"]
             if enteredemail not in emails:
-                if username != '' and request.form["password"] != '' and enteredemails != '':
+                if username != '' and request.form["password"] != '' and enteredemail != '':
                     users[username] = {
                         'password': request.form["password"],
                         'email': enteredemail,
