@@ -137,10 +137,18 @@ def postchirp():
 @app.route('/deletechirp/<chirp_id>')
 def deletechirp(chirp_id):
     if 'username' in session:
+        print chirp_id
         # For some reason, Jinja's loop.index0 appends "%3E" to the end of the URL
         # So we need to get rid of that last character
-        chirp_id = int(chirp_id[:-1])
-        users[session['username']]['chirps'].pop(chirp_id)
+
+
+        # This leads to an error when the user manually types in a number to the URL
+        if chirp_id.endswith('>'):
+            print 'delete last character'
+            chirp_id = int(chirp_id[:-1])
+        if chirp_id < len(users[session['username']]['chirps']):
+            print chirp_id
+            users[session['username']]['chirps'].pop(chirp_id)
     return redirect(url_for('home'))
 
 # Adding a friend
