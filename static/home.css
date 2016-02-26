@@ -46,6 +46,7 @@ html, body {
 
 .delete-user a {
 	color: red;
+	cursor: pointer;
 }
 
 .page h1 {
