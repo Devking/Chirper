@@ -66,7 +66,7 @@ def checkreg():
         if username not in users.keys():
             enteredemail = request.form["email"]
             if enteredemail not in emails:
-                if username != '' and request.form["password"] != '' and request.form["email"] != '':
+                if username != '' and request.form["password"] != '' and enteredemails != '':
                     users[username] = {
                         'password': request.form["password"],
                         'email': enteredemail,
@@ -127,7 +127,7 @@ def home():
 def postchirp():
     if request.method == 'POST':
         # Need to add logic to strip whitespace and check validity after
-        if request.form["chirp"] != '':
+        if request.form["chirp"].strip() != '':
             users[session['username']]['chirps'].insert(0, request.form["chirp"])
         else:
             return redirect(url_for('home', emptychirp = True))
