@@ -1,7 +1,7 @@
-- log in
-- log out
+- log in - done
+- log out - done
 
-- registration
+- registration - done
 - deletion
 
 - write message

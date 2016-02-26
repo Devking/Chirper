@@ -1,0 +1,106 @@
+html, body {
+	padding: 0;
+	margin: 0;
+	font-family: 'Montserrat', sans-serif;
+	height: 100%;
+}
+
+.page {
+	width: 960px;
+	margin-left: auto;
+	margin-right: auto;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	min-height: 100%;
+	padding: 20px;
+}
+
+.page a {
+	text-decoration: none;
+}
+
+.page a:hover {
+	text-decoration: underline;
+}
+
+.page .header .username {
+	float: left;
+	width: 740px;
+}
+
+.page .header .logout {
+	float: left;
+	width: 100px;
+	text-align: right;
+}
+
+.page .header .delete-user {
+	float: left;
+	width: 100px;
+	text-align: right;
+}
+
+.page .clear {
+	clear: both;
+}
+
+.delete-user a {
+	color: red;
+}
+
+.page h1 {
+	padding: 0;
+	margin: 0;
+}
+
+.chirper {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding: 10px;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+}
+
+.friends-list {
+	float: left;
+	width: 200px;
+	border: 1px solid black;
+	margin: 10px;
+	padding: 10px;
+}
+
+.friends-list h1 {
+	padding: 0;
+	margin: 0;
+	border-bottom: 1px dotted black;
+}
+
+.chirp-content {
+	float: left;
+	width: 700px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.chirp-user {
+	border: 1px solid black;
+	padding: 10px;
+	margin: 10px;
+}
+
+.chirp-content .chirp-user .author {
+	border-bottom: 1px solid black;
+	padding-bottom: 10px;
+}
+
+.chirp-content .chirp-user .message {
+	border-bottom: 1px dotted black;
+	padding: 10px;
+	width: 640px;
+	word-break: break-all;
+}
+
+.chirp-content .chirp-user .message:last-child {
+	padding-bottom: 0px;
+	border-bottom: 0px;
+}

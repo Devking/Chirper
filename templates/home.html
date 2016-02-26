@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{{username}}'s Home Page</title>
+
+	<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="/static/home.css" />
+</head>
+<body>
+
+	<div class="page">
+
+		<div class="header">
+			<div class="username">Hello, <b>{{username}}</b> ({{email}}).</div>
+			<div class="delete-user"><a href="#">Delete User</a></div>
+			<div class="logout"><a href="/logout">Logout</a></div>
+			<div class="clear"></div>
+		</div>
+
+		<div class="chirper">
+			<form method="POST" action="/postchirp">
+				<input type="text" name="chirp" size="125" maxlength="100" placeholder="What's happening on your mind?"></input>
+				<input type="submit" value="Chirp!"></input>
+			</form>
+			{% if emptychirp %}
+			Can't chirp nothing!<br />
+			{% endif %}
+			<br />
+			<form method="POST" action="/addfriend">
+				<input type="text" name="friend" maxlength="20" placeholder="Username"></input>
+				<input type="submit" value="Add friend"></input>
+			</form>
+			{% if friendnotfound %}
+			User doesn't exist!<br />
+			{% endif %}
+			{% if alreadyfriends %}
+			Already friends with user!<br />
+			{% endif %}
+			{% if addyourself %}
+			Can't add yourself!<br />
+			{% endif %}
+			{% if emptyfriend %}
+			Can't add blank user!<br />
+			{% endif %}
+		</div>
+
+		<div class="friends-list">
+			<h1>Friends List</h1>
+			{% if friends|length == 0 %}
+			No friends
+			{% endif %}
+			{% for friend in friends %}
+			<span class="friend">{{ friend }}</span><br />
+			{% endfor %}
+		</div>
+
+		<div class="chirp-content">
+			{% for user in chirps %}
+				<div class="chirp-user">
+					<div class="author">
+						{{ user.author }}
+						{% if user.author == username %}
+						(You)
+						{% endif %}
+					</div>
+					{% if user.chirps|length == 0 %}
+					This user has no chirps.
+					{% endif %}
+					{% for chirp in user.chirps %}
+					<div class="message">{{ chirp }}</div>
+					{% endfor %}
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+
+</body>
+</html>

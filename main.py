@@ -1,11 +1,9 @@
-# Wells Santo and Patrick Kingchatchaval
+# CS3254 Parallel and Distributed Systems
+# Code Written By: Wells Santo and Patrick Kingchatchaval
 
-# SPAAAAAAAAAAAAAAAAAAAAACE (not tabs)
-
-# import functionality from the Flask package
 from flask import Flask, render_template, redirect, request, url_for, session
 
-# import in-memory user information
+# Import in-memory user information, aka some default dummy created users and dummy messages
 from manifest import users, emails
 
 # Create the Flask object
@@ -32,7 +30,7 @@ def login():
 
         # Login is successful
         if username in users.keys() and users[username]["password"] == request.form["password"]:
-            
+
             # Add to current session
             session['username'] = username
             # Persist the session across closed windows
@@ -51,7 +49,7 @@ def reg():
     # Check if someone is already logged in
     if 'username' in session:
         return redirect(url_for('home'))
-    
+
     return render_template("register.html", regfail = False)
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
@@ -59,7 +57,7 @@ def checkreg():
     # Check if someone is already logged in
     if 'username' in session:
         return redirect(url_for('home'))
-    
+
     if request.method == 'POST':
         username = request.form["username"]
 
@@ -106,9 +104,10 @@ def home():
                          })
 
     # Otherwise, generate the home page
-    return render_template("verify.html", 
+    return render_template("home.html",
         username = session['username'],
         email    = users[session['username']]['email'],
+        friends  = users[session['username']]['friends'],
         chirps   = allchirps,
         emptychirp = request.args.get('emptychirp'),
         emptyfriend = request.args.get('emptyfriend'),
@@ -120,6 +119,7 @@ def home():
 @app.route('/postchirp', methods=['POST', 'GET'])
 def postchirp():
     if request.method == 'POST':
+        # Need to add logic to strip whitespace and check validity after
         if request.form["chirp"] != '':
             users[session['username']]['chirps'].insert(0, request.form["chirp"])
         else:
@@ -140,20 +140,15 @@ def addfriend():
             return redirect(url_for('home', alreadyfriends = True))
         users[session['username']]['friends'].append(request.form["friend"])
     return redirect(url_for('home'))
-    
 
 # Logout
 @app.route('/logout')
 def logout():
-    # Clear the session
     session.clear()
-    # Redirect back to the splash page
     return redirect(url_for('splash'))
 
 # Set secret key for sessions
-app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1a\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
+app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1b\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
 
 # Run the Flask application
 app.run("localhost", 8000, debug = True)
-
-# Note: If you restart the 'server' while someone is accessing a session, bad things happen
