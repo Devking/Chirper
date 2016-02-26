@@ -5,7 +5,7 @@
 - deletion - done
 
 - write message - done
-- delete message
+- delete message - done
 
 - follow people - done
 - unfollow people - done
