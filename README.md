@@ -6,7 +6,9 @@ The not-very-original social media alternative, designed by Wells Lucas Santo an
 
 This application runs on **Python 2.7.11** and requires the **Flask** package.
 
-This application also has a minor feature that uses **jQuery**. We are using jQuery from Google's hosted library service, so this feature will only work if you are connected to the internet.
+This application also has a minor feature that uses **jQuery**.
+
+We are using jQuery from Google's hosted library service, so this feature will only work if you are connected to the internet.
 
 ## Running the Application
 
