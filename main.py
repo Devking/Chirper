@@ -63,16 +63,16 @@ def checkreg():
         if username in users.keys():
             return render_template("register.html", regfail = True)
         else:
-            enteredEmail = request.form["email"]
-            if enteredEmail in emails:
+            enteredemail = request.form["email"]
+            if enteredemail in emails:
                     return render_template("register.html", regfail = True)
             users[username] = {
                 'password': request.form["password"],
-                'email': enteredEmail,
+                'email': enteredemail,
                 'chirps': [],
                 'friends': []
             }
-            emails.add(enteredEmail)
+            emails.add(enteredemail)
             return render_template("regsuccess.html")
 
     # If someone landed here not on a POST request, send back to register page
@@ -87,27 +87,31 @@ def home():
         return redirect(url_for('splash'))
 
     # Retrieve chirps of user and user's friends
-    allChirps = [{
+    allchirps = [{
                       'author': session['username'],
                       'chirps': users[session['username']]['chirps']
                  }]
     for friend in users[session['username']]['friends']:
-        allChirps.append({
+        allchirps.append({
                               'author': friend,
                               'chirps': users[friend]['chirps']
                          })
 
     # Otherwise, generate the home page
-    return render_template("verify.html",
+    return render_template("verify.html", 
         username = session['username'],
         email    = users[session['username']]['email'],
-        chirps   = allChirps)
+        chirps   = allchirps,
+        emptychirp = request.args.get('emptychirp'))
 
 # Posting a chirp
 @app.route('/postchirp', methods=['POST', 'GET'])
 def postchirp():
     if request.method == 'POST':
-        users[session['username']]['chirps'].insert(0, request.form["chirp"])
+        if request.form["chirp"] != '':
+            users[session['username']]['chirps'].insert(0, request.form["chirp"])
+        else:
+            return redirect(url_for('home', emptychirp = True))
     return redirect(url_for('home'))
     
 

@@ -15,7 +15,7 @@
 		<h2>we're not <em>that</em> original.</h2>
 
 		<form method="POST" action="/login">
-			<input type="text" name="username" placeholder="Username"></input><br />
+			<input type="text" name="username" maxlength="20" placeholder="Username"></input><br />
 			<input type="password" name="password" placeholder="Password"></input><br />
 
 			{% if loginfailed %}
