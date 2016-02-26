@@ -33,6 +33,22 @@
 			<input type="submit" value="Add friend"></input>
 		</form>
 
+		{% if friendnotfound %}
+		User doesn't exist!<br />
+		{% endif %}
+
+		{% if alreadyfriends %}
+		Already friends with user!<br />
+		{% endif %}
+
+		{% if addyourself %}
+		Can't add yourself!<br />
+		{% endif %}
+
+		{% if emptyfriend %}
+		Can't add blank user!<br />
+		{% endif %}
+
 		<div class="content">
 			{% for user in chirps %}
 				{% for chirp in user.chirps %}

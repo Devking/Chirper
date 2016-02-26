@@ -110,7 +110,11 @@ def home():
         username = session['username'],
         email    = users[session['username']]['email'],
         chirps   = allchirps,
-        emptychirp = request.args.get('emptychirp'))
+        emptychirp = request.args.get('emptychirp'),
+        emptyfriend = request.args.get('emptyfriend'),
+        addyourself = request.args.get('addyourself'),
+        friendnotfound = request.args.get('friendnotfound'),
+        alreadyfriends = request.args.get('alreadyfriends'))
 
 # Posting a chirp
 @app.route('/postchirp', methods=['POST', 'GET'])
@@ -120,6 +124,21 @@ def postchirp():
             users[session['username']]['chirps'].insert(0, request.form["chirp"])
         else:
             return redirect(url_for('home', emptychirp = True))
+    return redirect(url_for('home'))
+
+# Adding a friend
+@app.route('/addfriend', methods=['POST', 'GET'])
+def addfriend():
+    if request.method == 'POST':
+        if request.form["friend"] == '':
+            return redirect(url_for('home', emptyfriend = True))
+        if request.form["friend"] == session['username']:
+            return redirect(url_for('home', addyourself = True))
+        if request.form["friend"] not in users.keys():
+            return redirect(url_for('home', friendnotfound = True))
+        if request.form["friend"] in users[session['username']]['friends']:
+            return redirect(url_for('home', alreadyfriends = True))
+        users[session['username']]['friends'].append(request.form["friend"])
     return redirect(url_for('home'))
     
 
