@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>{{username}}'s Home Page</title>
+	<title>Chirper | {{username}}</title>
 
 	<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="/static/home.css" />
@@ -23,8 +23,8 @@
 
 		<div class="chirper">
 			<form method="POST" action="/postchirp">
-				<input type="text" name="chirp" size="125" maxlength="100" placeholder="What's happening on your mind?"></input>
-				<input type="submit" value="Chirp!"></input>
+				<input type="text" autocomplete="off" class="fn-chirp-field" name="chirp" size="125" maxlength="100" placeholder="What's happening on your mind?"></input>
+				<span class="fn-chirp-count">100</span><input type="submit" value="Chirp!"></input>
 			</form>
 			{% if emptychirp %}
 			Can't chirp nothing!<br />
