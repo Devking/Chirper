@@ -1,5 +1,11 @@
 - log in
-- users & passwords
-- registration & deletion
-- write/send messages to particular other users
-- delete messages
+- log out
+
+- registration
+- deletion
+
+- write message
+- delete message
+
+- follow people
+- unfollow people

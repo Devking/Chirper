@@ -50,7 +50,7 @@ def reg():
 	if 'username' in session:
 		return redirect(url_for('home'))
 
-	return render_template("register.html", regfail = False)
+	return render_template("register.html", regfail = False, emptyreg = False)
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
@@ -64,15 +64,18 @@ def checkreg():
 		# If this is a new user, add them to the user table
 		if username not in users.keys():
 
-			users[username] = {
-				'password': request.form["password"],
-				'email': request.form["email"],
-				'chirps': []
-			}
-			return render_template("regsuccess.html")
+			if username != '' and request.form["password"] != '' and request.form["email"] != '':
+				users[username] = {
+					'password': request.form["password"],
+					'email': request.form["email"],
+					'chirps': []
+				}
+				return render_template("regsuccess.html")
+			else:
+				return render_template("register.html", regfail = False, emptyreg = True)
 
 		else:
-			return render_template("register.html", regfail = True)
+			return render_template("register.html", regfail = True, emptyreg = False)
 
 	# If someone landed here not on a POST request, send back to register page
 	return render_template("register.html", regfail = False)
