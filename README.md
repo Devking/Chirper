@@ -8,10 +8,14 @@ This application runs on Python 2.7.11 and requires the Flask package.
 
 ## Running the Application
 
-On this directory, run the following:
+On this directory, run the following in the terminal:
 
 `python main.py`
 
 This will start a Flask-based server, running on localhost.
+
+You can access the web application at the following address:
+
+`http://127.0.0.1:8000`
 
 This server will persist the session (aka retain all newly created users and messages) until you stop the server.
