@@ -157,6 +157,8 @@ def logout():
 # Delete account
 @app.route('/deleteaccount')
 def deleteaccount():
+    emails.remove(users[session['username']]['email'])
+    del users[session['username']]
     session.clear()
     return redirect(url_for('splash'))
 
