@@ -48,32 +48,40 @@ def login():
 # Registration page for making new accounts
 @app.route('/register')
 def reg():
+    # Check if someone is already logged in
     if 'username' in session:
         return redirect(url_for('home'))
+    
     return render_template("register.html", regfail = False)
 
 @app.route('/checkregistration', methods=['POST', 'GET'])
 def checkreg():
+    # Check if someone is already logged in
     if 'username' in session:
         return redirect(url_for('home'))
+    
     if request.method == 'POST':
         username = request.form["username"]
 
         # If this is a new user, add them to the user table
-        if username in users.keys():
-            return render_template("register.html", regfail = True)
-        else:
+        if username not in users.keys():
             enteredemail = request.form["email"]
-            if enteredemail in emails:
-                    return render_template("register.html", regfail = True)
-            users[username] = {
-                'password': request.form["password"],
-                'email': enteredemail,
-                'chirps': [],
-                'friends': []
-            }
-            emails.add(enteredemail)
-            return render_template("regsuccess.html")
+            if enteredemail not in emails:
+                if username != '' and request.form["password"] != '' and request.form["email"] != '':
+                    users[username] = {
+                        'password': request.form["password"],
+                        'email': enteredemail,
+                        'chirps': [],
+                        'friends': []
+                    }
+                    emails.add(enteredemail)
+                    return render_template("regsuccess.html")
+                else:
+                    return render_template("register.html", regfail = False, emptyreg = True)
+            else:
+                return render_template("register.html", regfail = True, emptyreg = False)
+        else:
+            return render_template("register.html", regfail = True, emptyreg = False)
 
     # If someone landed here not on a POST request, send back to register page
     return render_template("register.html", regfail = False)

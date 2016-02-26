@@ -18,6 +18,9 @@
             {% if regfail %}
             <span class="loginstatus">Account Already Exists</span><br />
             {% endif %}
+            {% if emptyreg %}
+            <span class="loginstatus">You Can't Have Blank Fields!</span><br />
+            {% endif %}
             <input type="submit" value="Create Account"></input>
         </form>
         <a href="/">Return to Login</a>
