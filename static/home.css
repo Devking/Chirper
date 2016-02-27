@@ -37,6 +37,9 @@ a:hover {
 	width: 100%;
 	background-color: #ffcc99;
 	font-family: "Open Sans", sans-serif;
+	-webkit-box-shadow: 0px 7px 9px 0px rgba(0,0,0,0.75);
+        moz-box-shadow: 0px 7px 9px 0px rgba(0,0,0,0.75);
+            box-shadow: 0px 7px 9px 0px rgba(0,0,0,0.75);
 }
 
 .head-wrap {
@@ -56,12 +59,12 @@ a:hover {
 }
 
 .head-wrap .title {
-	color: #111; 
+	color: #111;
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Open Sans", sans-serif;
-	font-size: 45px; 
-	font-weight: bold; 
-	letter-spacing: -1px; 
-	line-height: 1; 
+	font-size: 45px;
+	font-weight: bold;
+	letter-spacing: -1px;
+	line-height: 1;
 }
 
 .header .username {
@@ -99,8 +102,8 @@ h1 {
 	padding: 0;
 	margin: 0;
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Open Sans", sans-serif;
-	font-weight: bold; 
-	letter-spacing: -1px; 
+	font-weight: bold;
+	letter-spacing: -1px;
 	line-height: 1;
 	font-size: 26px;
 }
