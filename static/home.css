@@ -1,8 +1,20 @@
+html * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html, body {
 	padding: 0;
 	margin: 0;
-	font-family: 'Montserrat', sans-serif;
-	height: 100%;
+	font-family: 'Open Sans', sans-serif;
+	min-height: 100%;
+	background: linear-gradient(rgba(32, 32, 32, 0.6), rgba(32, 32, 32, 0.6)), url('yosemitebg.jpg') no-repeat center center fixed;
+
+	/*For full-window background*/
+	-webkit-background-size: cover;
+	   -moz-background-size: cover;
+	     -o-background-size: cover;
+	        background-size: cover;
 }
 
 .page {
@@ -14,7 +26,7 @@ html, body {
 
 a {
 	text-decoration: none;
-	color: orange;
+	color: #ff9966;
 }
 
 a:hover {
@@ -54,6 +66,10 @@ a:hover {
 	text-align: right;
 }
 
+.logout a {
+	color: black;
+}
+
 .header .delete-user {
 	float: left;
 	width: 100px;
@@ -72,13 +88,20 @@ a:hover {
 h1 {
 	padding: 0;
 	margin: 0;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Open Sans", sans-serif;
+	font-weight: bold; 
+	letter-spacing: -1px; 
+	line-height: 1; 
 }
 
 .chirper {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	padding: 10px;
-	border: 1px solid black;
+	border: 1px solid #cccccc;
+	background-color: #fff;
+	-moz-border-radius: 5px;
+	     border-radius: 5px;
 }
 
 .chirper .chirp-center {
@@ -102,15 +125,16 @@ h1 {
 .friends-list {
 	float: right;
 	width: 218px;
-	border: 1px solid black;
+	border: 1px solid #cccccc;
 	margin-top: 10px;
 	margin-right: 20px;
 	padding: 10px;
+	-moz-border-radius: 5px;
+	     border-radius: 5px;
+	background-color: #fff;
 }
 
 .friends-list h1 {
-	padding: 0;
-	margin: 0;
 	border-bottom: 1px dotted black;
 }
 
@@ -132,24 +156,25 @@ h1 {
 }
 
 .chirp-user {
-	border: 1px solid black;
-	padding: 10px;
+	border: 1px solid #cccccc;
 	margin-top: 10px;
+	background-color: #fff;
+	-moz-border-radius: 5px;
+	     border-radius: 5px;
 }
 
 .chirp-content .chirp-user .author {
-	border-bottom: 1px solid black;
-	padding-bottom: 10px;
+	border-bottom: 1px solid #cccccc;
+	padding: 10px;
 }
 
 .chirp-content .chirp-user .message {
 	border-bottom: 1px dotted black;
 	padding: 10px;
-	width: 640px;
+	width: 680px;
 	word-break: break-all;
 }
 
 .chirp-content .chirp-user .message:last-child {
-	padding-bottom: 0px;
 	border-bottom: 0px;
 }
