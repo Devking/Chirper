@@ -91,7 +91,8 @@ h1 {
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Open Sans", sans-serif;
 	font-weight: bold; 
 	letter-spacing: -1px; 
-	line-height: 1; 
+	line-height: 1;
+	font-size: 26px;
 }
 
 .chirper {
@@ -124,7 +125,7 @@ h1 {
 
 .friends-list {
 	float: right;
-	width: 218px;
+	width: 238px;
 	border: 1px solid #cccccc;
 	margin-top: 10px;
 	margin-right: 20px;
@@ -135,22 +136,24 @@ h1 {
 }
 
 .friends-list h1 {
-	border-bottom: 1px dotted black;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #cccccc;
 }
 
 .friends-list .add-friend {
 	padding: 10px;
 	text-align: center;
-	border-bottom: 1px dotted black;
+	border-bottom: 1px solid #cccccc;
 }
 
 .friends-list .friends {
 	padding-top: 10px;
+	font-size: 14px;
 }
 
 .chirp-content {
 	float: right;
-	width: 700px;
+	width: 680px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -164,15 +167,21 @@ h1 {
 }
 
 .chirp-content .chirp-user .author {
-	border-bottom: 1px solid #cccccc;
+	border-bottom: 1px solid #ccc;
 	padding: 10px;
 }
 
 .chirp-content .chirp-user .message {
-	border-bottom: 1px dotted black;
+	border-bottom: 1px dotted #ccc;
 	padding: 10px;
-	width: 680px;
+	width: 658px;
+	color: #666;
+	font-size: 14px;
 	word-break: break-all;
+}
+
+.no-chirp {
+	font-style: italic;
 }
 
 .chirp-content .chirp-user .message:last-child {

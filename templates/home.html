@@ -56,7 +56,7 @@
 						{% endif %}
 					</div>
 					{% if user.chirps|length == 0 %}
-					This user has no chirps.
+					<div class="message no-chirp">This user has no chirps.</div>
 					{% endif %}
 					{% for chirp in user.chirps %}
 						<div class="message">
@@ -75,7 +75,7 @@
 
 			<div class="add-friend">
 				<form method="POST" action="/addfriend">
-					<input type="text" name="friend" maxlength="20" placeholder="Username"></input>
+					<input type="text" autocomplete="off" name="friend" maxlength="20" placeholder="Username"></input>
 					<input type="submit" value="Add friend"></input>
 				</form>
 				{% if friendnotfound %}

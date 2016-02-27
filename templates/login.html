@@ -19,7 +19,7 @@
 
 		<form method="POST" action="/login">
 			<input type="text" name="username" maxlength="20" placeholder="Username"></input><br />
-			<input type="password" name="password" placeholder="Password"></input><br />
+			<input type="password" autocomplete="off" name="password" placeholder="Password"></input><br />
 
 			{% if loginfailed %}
 			<span class="loginstatus">Login failed</span><br />

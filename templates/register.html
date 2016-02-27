@@ -14,9 +14,9 @@
     <div class="central-float">
         <h1>Register</h1>
         <form method="POST" action="/checkregistration">
-            <input type="text" name="email" placeholder="Email"></input><br />
-            <input type="text" name="username" maxlength="20" placeholder="Username"></input><br />
-            <input type="password" name="password" placeholder="Password"></input><br />
+            <input type="text" autocomplete="off" name="email" placeholder="Email"></input><br />
+            <input type="text" autocomplete="off" name="username" maxlength="20" placeholder="Username"></input><br />
+            <input type="password" autocomplete="off" name="password" placeholder="Password"></input><br />
             {% if regfail %}
             <span class="loginstatus">Account Already Exists</span><br />
             {% endif %}
