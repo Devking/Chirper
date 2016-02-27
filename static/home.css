@@ -227,6 +227,7 @@ h1 {
 
 .no-chirp {
 	font-style: italic;
+	padding: 10px;
 }
 
 .chirp-content .chirp-user .message:last-child {
