@@ -46,8 +46,12 @@ a:hover {
 	padding: 20px;
 }
 
+.head-info {
+	float: left;
+}
+
 .head-buttons {
-	float: right;
+	float: left;
 	margin-top: 23px;
 }
 
@@ -148,6 +152,13 @@ h1 {
 	-moz-border-radius: 5px;
 	     border-radius: 5px;
 	background-color: #fff;
+
+	-webkit-box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+	    moz-box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+	        box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+
+	-moz-border-radius: 5px;
+	     border-radius: 5px;
 }
 
 .friends-list h1 {
@@ -181,6 +192,13 @@ h1 {
 .chirp-user {
 	margin-top: 20px;
 	background-color: #fff;
+	-moz-border-radius: 5px;
+	     border-radius: 5px;
+
+	-webkit-box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+	    moz-box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+	        box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+
 	-moz-border-radius: 5px;
 	     border-radius: 5px;
 }
