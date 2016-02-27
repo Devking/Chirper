@@ -46,6 +46,11 @@ a:hover {
 	padding: 20px;
 }
 
+.head-buttons {
+	float: right;
+	margin-top: 23px;
+}
+
 .head-wrap .title {
 	color: #111; 
 	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Open Sans", sans-serif;
@@ -64,6 +69,7 @@ a:hover {
 	float: left;
 	width: 100px;
 	text-align: right;
+	font-weight: 600;
 }
 
 .logout a {
@@ -72,8 +78,8 @@ a:hover {
 
 .header .delete-user {
 	float: left;
-	width: 100px;
 	text-align: right;
+	font-weight: 600;
 }
 
 .clear {
@@ -95,12 +101,24 @@ h1 {
 	font-size: 26px;
 }
 
+.chirp-count {
+	font-size: 14px;
+}
+
+.error {
+	color: #666;
+	font-size: 14px;
+}
+
 .chirper {
-	margin-top: 10px;
-	margin-bottom: 10px;
 	padding: 10px;
 	border: 1px solid #cccccc;
 	background-color: #fff;
+
+	-webkit-box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+	    moz-box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+	        box-shadow: 9px 9px 9px -4px rgba(0,0,0,0.75);
+
 	-moz-border-radius: 5px;
 	     border-radius: 5px;
 }
@@ -124,20 +142,22 @@ h1 {
 }
 
 .friends-list {
-	float: right;
-	width: 238px;
-	border: 1px solid #cccccc;
-	margin-top: 10px;
-	margin-right: 20px;
-	padding: 10px;
+	float: left;
+	width: 258px;
+	margin-top: 20px;
 	-moz-border-radius: 5px;
 	     border-radius: 5px;
 	background-color: #fff;
 }
 
 .friends-list h1 {
-	padding-bottom: 10px;
+	padding: 10px;
 	border-bottom: 1px solid #cccccc;
+	background-color: #ffcc99;
+    moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
 }
 
 .friends-list .add-friend {
@@ -147,20 +167,19 @@ h1 {
 }
 
 .friends-list .friends {
-	padding-top: 10px;
+	padding: 10px;
 	font-size: 14px;
+	color: #666;
 }
 
 .chirp-content {
-	float: right;
+	float: left;
 	width: 680px;
-	margin-left: auto;
-	margin-right: auto;
+	margin-left: 20px;
 }
 
 .chirp-user {
-	border: 1px solid #cccccc;
-	margin-top: 10px;
+	margin-top: 20px;
 	background-color: #fff;
 	-moz-border-radius: 5px;
 	     border-radius: 5px;
@@ -168,16 +187,24 @@ h1 {
 
 .chirp-content .chirp-user .author {
 	border-bottom: 1px solid #ccc;
+	background-color: #ffcc99;
+    moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
 	padding: 10px;
 }
 
 .chirp-content .chirp-user .message {
 	border-bottom: 1px dotted #ccc;
-	padding: 10px;
-	width: 658px;
+	width: 100%;
 	color: #666;
 	font-size: 14px;
 	word-break: break-all;
+}
+
+.message-pad {
+	padding: 10px;
 }
 
 .no-chirp {
@@ -186,4 +213,5 @@ h1 {
 
 .chirp-content .chirp-user .message:last-child {
 	border-bottom: 0px;
+	margin-bottom: 20px;
 }
