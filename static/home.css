@@ -9,39 +9,58 @@ html, body {
 	width: 960px;
 	margin-left: auto;
 	margin-right: auto;
-	border-left: 1px solid black;
-	border-right: 1px solid black;
-	min-height: 100%;
 	padding: 20px;
 }
 
-.page a {
+a {
 	text-decoration: none;
 	color: orange;
 }
 
-.page a:hover {
+a:hover {
 	text-decoration: underline;
 }
 
-.page .header .username {
+.header {
+	width: 100%;
+	background-color: #ffcc99;
+	font-family: "Open Sans", sans-serif;
+}
+
+.head-wrap {
+	width: 960px;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 20px;
+}
+
+.head-wrap .title {
+	color: #111; 
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Open Sans", sans-serif;
+	font-size: 45px; 
+	font-weight: bold; 
+	letter-spacing: -1px; 
+	line-height: 1; 
+}
+
+.header .username {
 	float: left;
 	width: 740px;
 }
 
-.page .header .logout {
+.header .logout {
 	float: left;
 	width: 100px;
 	text-align: right;
 }
 
-.page .header .delete-user {
+.header .delete-user {
 	float: left;
 	width: 100px;
 	text-align: right;
 }
 
-.page .clear {
+.clear {
 	clear: both;
 }
 
@@ -50,7 +69,7 @@ html, body {
 	cursor: pointer;
 }
 
-.page h1 {
+h1 {
 	padding: 0;
 	margin: 0;
 }
@@ -59,8 +78,7 @@ html, body {
 	margin-top: 10px;
 	margin-bottom: 10px;
 	padding: 10px;
-	border-top: 1px solid black;
-	border-bottom: 1px solid black;
+	border: 1px solid black;
 }
 
 .chirper .chirp-center {
@@ -82,10 +100,11 @@ html, body {
 }
 
 .friends-list {
-	float: left;
-	width: 200px;
+	float: right;
+	width: 218px;
 	border: 1px solid black;
-	margin: 10px;
+	margin-top: 10px;
+	margin-right: 20px;
 	padding: 10px;
 }
 
@@ -106,7 +125,7 @@ html, body {
 }
 
 .chirp-content {
-	float: left;
+	float: right;
 	width: 700px;
 	margin-left: auto;
 	margin-right: auto;
@@ -115,7 +134,7 @@ html, body {
 .chirp-user {
 	border: 1px solid black;
 	padding: 10px;
-	margin: 10px;
+	margin-top: 10px;
 }
 
 .chirp-content .chirp-user .author {

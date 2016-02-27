@@ -196,7 +196,7 @@ def deleteaccount():
     return redirect(url_for('splash', deletedaccount = deletesuccess))
 
 # Set secret key for sessions
-app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1b\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
+app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1c\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
 
 # Run the Flask application
-app.run("localhost", 8000, debug = False)
+app.run("localhost", 8000, debug = True)

@@ -28,9 +28,9 @@ This server will persist the session (aka retain all newly created users and mes
 
 ## Dummy Example Data
 
-Right now, since we are storing user data in memory, we already have two users in the system as dummy example data.
+Right now, since we are storing user data in memory, we already have three users in the system as dummy example data.
 
-These two users are as follows:
+These three users are as follows:
 
 > **Username:** admin
 >
@@ -42,4 +42,10 @@ and
 >
 > **Password:** dole
 
-admin is following bob, but bob is not following admin.
+and
+
+> **Username:** tai
+>
+> **Password:** lopez
+
+admin is following both bob and tai, and can be used to best illustrate the functionality of the application.

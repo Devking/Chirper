@@ -7,20 +7,25 @@
 	<title>Chirper | {{username}}</title>
 
 	<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800,800italic' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="/static/home.css" />
+	<link rel="stylesheet" media="screen and (max-width: 1000px)" href="/static/mid-home.css" />
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 	<script src="/static/home.js"></script>
 </head>
 <body>
 
-	<div class="page">
-
-		<div class="header">
+	<div class="header">
+		<div class="head-wrap">
+			<div class="title">Chirper</div>
 			<div class="username">Hello, <b>{{username}}</b> ({{email}}).</div>
 			<div class="delete-user"><a class="fn-delete">Delete User</a></div>
 			<div class="logout"><a href="/logout">Logout</a></div>
 			<div class="clear"></div>
 		</div>
+	</div>
+
+	<div class="page">
 
 		<div class="chirper">
 			<form method="POST" action="/postchirp">
@@ -38,6 +43,31 @@
 				</div>
 				<div class="clear"></div>
 			</form>
+		</div>
+
+		<div class="chirp-content">
+			{% for user in chirps %}
+				<div class="chirp-user">
+					<div class="author">
+						{% if user.author == username %}
+						<h1>Your Chirps</h1>
+						{% else %}
+						<h1>{{ user.author }}</h1>
+						{% endif %}
+					</div>
+					{% if user.chirps|length == 0 %}
+					This user has no chirps.
+					{% endif %}
+					{% for chirp in user.chirps %}
+						<div class="message">
+						{{ chirp }}
+						{% if user.author == username %}
+							(<a href="/deletechirp/{{ loop.index0 }}">Delete Chirp</a>)
+						{% endif %}
+						</div>
+					{% endfor %}
+				</div>
+			{% endfor %}
 		</div>
 
 		<div class="friends-list">
@@ -74,31 +104,6 @@
 				</span><br />
 				{% endfor %}
 			</div>
-		</div>
-
-		<div class="chirp-content">
-			{% for user in chirps %}
-				<div class="chirp-user">
-					<div class="author">
-						{% if user.author == username %}
-						<h1>Your Chirps</h1>
-						{% else %}
-						<h1>{{ user.author }}</h1>
-						{% endif %}
-					</div>
-					{% if user.chirps|length == 0 %}
-					This user has no chirps.
-					{% endif %}
-					{% for chirp in user.chirps %}
-						<div class="message">
-						{{ chirp }}
-						{% if user.author == username %}
-							(<a href="/deletechirp/{{ loop.index0 }}">Delete Chirp</a>)
-						{% endif %}
-						</div>
-					{% endfor %}
-				</div>
-			{% endfor %}
 		</div>
 	</div>
 

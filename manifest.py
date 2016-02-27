@@ -8,13 +8,19 @@ users = {
                 'password': 'pass',
                 'email': 'admin@admin.com',
                 'chirps': ['Hello', 'Invest In Kanye West Ideas'],
-                'friends': ['bob']
+                'friends': ['bob', 'tai']
             },
 
             'bob': {
                 'password': 'dole',
                 'email': 'bob@dole.com',
-                'chirps': ['Hi', 'something'],
+                'chirps': ['Hi', 'Rob is the best TA ever'],
+                'friends': ['admin']
+            },
+            'tai': {
+                'password': 'lopez',
+                'email': 'tai@lopez.com',
+                'chirps': ['Here in my garage...', 'knowledge'],
                 'friends': []
             }
         }
@@ -22,4 +28,4 @@ users = {
 # Keep track of existing emails in a separate set
 # This way, we can check for duplicate e-mails during registration in O(1) time
 # Again, this would be cleaned up if a database were used
-emails = {'admin@admin.com', 'bob@dole.com'}
+emails = {'admin@admin.com', 'bob@dole.com', 'tai@lopez.com'}
