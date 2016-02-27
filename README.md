@@ -12,6 +12,8 @@ We are using jQuery from Google's hosted library service, so this feature will o
 
 This application has been tested on the latest versions of Chrome, Safari, and Firefox, on Ubuntu, Mac OSX, and Windows.
 
+This application also incorporates *responsive design* &mdash; if you run the server on your public IP, you can access the application on a mobile device to see a mobile version of the site. 
+
 ## Running the Application
 
 On this directory, run the following in the terminal:
