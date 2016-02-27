@@ -59,16 +59,16 @@
 					<input type="submit" value="Add friend"></input>
 				</form>
 				{% if friendnotfound %}
-				User doesn't exist!<br />
+				<span class="error">User doesn't exist!</span><br />
 				{% endif %}
 				{% if alreadyfriends %}
-				Already friends with user!<br />
+				<span class="error">Already friends with user!</span><br />
 				{% endif %}
 				{% if addyourself %}
-				Can't add yourself!<br />
+				<span class="error">Can't add yourself!</span><br />
 				{% endif %}
 				{% if emptyfriend %}
-				Can't add blank user!<br />
+				<span class="error">Can't add blank user!</span><br />
 				{% endif %}
 			</div>
 
