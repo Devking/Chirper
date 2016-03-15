@@ -16,8 +16,8 @@ def splash():
     if 'username' in session:
         return redirect(url_for('home'))
 
-    return render_template("login.html", 
-                            loginfailed = request.args.get('loginfailed'), 
+    return render_template("login.html",
+                            loginfailed = request.args.get('loginfailed'),
                             deletedaccount = request.args.get('deletedaccount'))
 
 # Redirect for login POST logic
@@ -199,4 +199,4 @@ def deleteaccount():
 app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1c\xd8\xd2Q\x8e\xe0z\x8d\xdc\xf5\x8c'
 
 # Run the Flask application
-app.run("localhost", 8000, debug = True)
+app.run("localhost", 8000, debug = False)
