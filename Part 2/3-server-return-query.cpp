@@ -17,7 +17,6 @@
 #include <iostream>
 
 #define MAXLINE     4096    // max text line length
-#define BUFFSIZE    8192    // buffer size for reads and writes
 #define SA          struct sockaddr
 #define LISTENQ     1024    // 2nd argument to listen() -- how many people to listen to / listening queue
 #define PORT_NUM    8000
@@ -90,43 +89,59 @@ int main() {
         std::string page = firstLine.substr(found + 1, found2 - found - 1);
         std::cout << "|" << page << "|" << std::endl;
 
-
         char* thing;
         bool valid = true;
 
+        // will definitely need to clean this up...
         if (requestType == "GET") {
-
             if (page == "/") {
-                thing = "web/login.html";
+                thing = (char *)"web/login.html";
             }
             else if (page == "/css/login.css") {
-                thing = "web/css/login.css";
+                thing = (char *)"web/css/login.css";
             }
             else if (page == "/css/small-login.css") {
-                thing = "web/css/small-login.css";
+                thing = (char *)"web/css/small-login.css";
             }
             else if (page == "/img/yosemitebg.jpg") {
-                thing = "web/img/yosemitebg.jpg";
+                thing = (char *)"web/img/yosemitebg.jpg";
             }
             else if (page == "/img/favicon.ico") {
-                thing = "web/img/favicon.ico";
+                thing = (char *)"web/img/favicon.ico";
             }
             else if (page == "/register") {
-                thing = "web/register.html";
+                thing = (char *)"web/register.html";
+            }
+            else if (page == "/css/home.css") {
+                thing = (char *)"web/css/home.css";
+            }
+            else if (page == "/css/mid-home.css") {
+                thing = (char *)"web/css/mid-home.css";
+            }
+            else if (page == "/home") {
+                thing = (char *)"web/home.html";
+            }
+            else if (page == "/js/home.js") {
+                thing = (char *)"web/js/home.js";
             } else {
                 valid = false;
             }
 
-
+        // Check all possible POST requests
         } else if (requestType == "POST") {
-            std::cout << test << std::endl;
-            // Need to get data field from POST (it's the last line of test, or after the \r\n\r\n)
-            // Compare the data field to what you expect, based on page the POST is being sent to
-            char* thing;
-            bool valid = true;
+            // POST for login
             if (page == "/home") {
-                // check login information
-                thing = "web/home.html";
+                thing = (char *)"web/home.html";
+                int lastLine = test.find("\r\n\r\n");
+                std::string data = test.substr(lastLine+4);
+                std::cout << "|" << data << "|" << std::endl;
+                // get username and password fields
+            }
+
+            // POST for logout
+            if (page == "/logout") {
+                thing = (char*)"web/login.html";
+                // clear cookies for this session
             }
 
         }

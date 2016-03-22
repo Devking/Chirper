@@ -12,7 +12,7 @@ html, body {
 	height: 100%;
 	min-height: 200px;
 
-	background: url('../img/yosemitebg.jpg') no-repeat center center fixed;
+	background: url('http://www.wellssanto.com/yosemitebg.jpg') no-repeat center center fixed;
 
 	/*For full-window background*/
 	-webkit-background-size: cover;
