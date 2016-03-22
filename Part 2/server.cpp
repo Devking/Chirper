@@ -103,14 +103,10 @@ int main() {
             case CHECKEMAIL: {
                 std::ifstream emailFile("email.txt");
 
-                // If email file does not exist, create one and tell client that email does not exist yet
                 if (!emailFile) {
                     std::ofstream emailFile("email.txt");
                     returnString += "NO";
-
-                    // If email file does exist, loop through it and find whether the email exists or not
-                }
-                else {
+                } else {
                     std::string email;
                     bool foundEmail = false;
                     while (getline(emailFile, email, ',')) {
@@ -120,6 +116,24 @@ int main() {
                     returnString += foundEmail ? "YES" : "NO";
                 }
                 break;
+            }
+
+            // Query to check user
+            case CHECKUSER: {
+                std::ifstream userFile("user.txt");
+
+                if (!userFile) {
+                    std::ofstream userFile("user.txt");
+                    returnString += "NO";
+                } else {
+                    std::string user;
+                    bool foundUser = false;
+                    while (getline(userFile, user, ',')) {
+                        std::cout << user << std::endl;
+                        if (user == field) foundUser = true;
+                    }
+                    returnString += foundUser ? "YES" : "NO";
+                }
             }
 
             default:

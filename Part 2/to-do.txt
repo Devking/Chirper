@@ -26,8 +26,8 @@ non-encryption
 
 potential queries:
 
-- check email 				CHECKEMAIL test@email.com
-- check username
+- check email 				CHECKEMAIL test@gmail.com
+- check username            CHECKUSER admin
 - delete user
 - create user
 - create chirp 				CREATE username\nchirp
