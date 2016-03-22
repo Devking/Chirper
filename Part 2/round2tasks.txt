@@ -23,3 +23,18 @@ Provide clear documentation describing:
 ------------------------------------------------------------------------
 
 Working in a new folder, since it's likely that we'll be using a completely different directory organization.
+
+------------------------------------------------------------------------
+
+Right Now:
+
+- Socket connection can be made
+- Can read HTTP requests from the client
+- Can break up HTTP requests into pieces
+- Can serve HTML and CSS files
+
+- Cannot serve images (need to be able to serve large file sizes)
+- Cannot deal with sessions / cookies -- need to make use of HTTP cookie-setting
+- Cannot deal with POST requests
+- Need to deal with templated sections on HTML pages
+	- A matter of parsing files and checking flags

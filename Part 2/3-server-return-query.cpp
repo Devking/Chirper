@@ -81,43 +81,87 @@ int main() {
         std::string test = readbuff;
         int found = test.find("\r\n");
         std::string firstLine = test.substr(0, found);
-        std::cout << firstLine << std::endl;
 
-        // we need to get just the first line to see what action to take
-        // char* crlf = strstr(readbuff, "\r\n");
-        // int firstLineSize = crlf - readbuff;
-        // char firstLine[firstLineSize];
-        // strncpy(firstLine, readbuff, firstLineSize);
-        // printf("\n\nBELOW IS METADATA:\n");
-        // printf("%d", firstLineSize);
-        // printf("%s", firstLine);
+        found = firstLine.find(" ");
+        std::string requestType = firstLine.substr(0, found);
+        std::cout << "|" << requestType << "|" << std::endl;
 
-        // Open the file and put its contents in 'msg'
-        FILE* fp = fopen("web/login.html", "rb");
-        if (!fp) {
-            perror("Error opening file");
-            exit(6);
-        }
-        fseek(fp, 0, SEEK_END);
-        long fsize = ftell(fp);
-        rewind(fp);
-        char* msg = (char*) malloc(fsize);
-        fread(msg, fsize, 1, fp);
-        fclose(fp);
+        int found2 = firstLine.find(" ", found + 1);
+        std::string page = firstLine.substr(found + 1, found2 - found - 1);
+        std::cout << "|" << page << "|" << std::endl;
 
-        // In this case, send our login.html file directly
-        // printf("%s", msg);
+        if (requestType == "GET") {
 
-        // buff is a string that we are printing to
-        // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n"); // buff is maxlinelength
-        sprintf(buff, "HTTP/1.1 200 OK\r\n\r\n");
-        // will throw a warning due to variable length
-        // also unsafe, since msg comes from the file
-        sprintf(buff, msg);
+            char* thing;
+            bool valid = true;
+            if (page == "/") {
+                thing = "web/login.html";
+            }
+            else if (page == "/css/login.css") {
+                thing = "web/css/login.css";
+            }
+            else if (page == "/css/small-login.css") {
+                thing = "web/css/small-login.css";
+            }
+            else if (page == "/img/yosemitebg.jpg") {
+                thing = "web/img/yosemitebg.jpg";
+            }
+            else if (page == "/img/favicon.ico") {
+                thing = "web/img/favicon.ico";
+            }
+            else if (page == "/register") {
+                thing = "web/register.html";
+            } else {
+                valid = false;
+            }
 
-        int len = strlen(buff);
-        if (len != write(connfd, buff, strlen(buff))) {
-            perror("write to connection failed");
+            if (valid) {
+
+                // Open the file and put its contents in 'msg'
+                FILE* fp = fopen(thing, "rb");
+                if (!fp) {
+                    perror("Error opening file");
+                    exit(6);
+                }
+                fseek(fp, 0, SEEK_END);
+                long fsize = ftell(fp);
+                rewind(fp);
+
+                //a int currentLength;
+                //a while ((currentLength = fread(buff, MAXLINE, 1, fp)) > 0)
+                //a     write(connfd, buff, currentLength);
+
+                char* msg = (char*) malloc(fsize);
+                fread(msg, fsize, 1, fp);
+                fclose(fp);
+                std::cout << "File Size: " << fsize << "\n";
+
+                // write text-based file to a string, and write that string to the socket
+
+                // buff is a string that we are printing to
+                // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n"); // buff is maxlinelength
+                sprintf(buff, "HTTP/1.1 200 OK\r\n\r\n");
+                // this will be a length of 19 so far
+
+                // will throw a warning due to variable length
+                // also unsafe, since msg comes from the file
+
+                // need to loop over this multiple times to get
+                // the *entire* msg, if it's longer than buff
+                sprintf(buff, msg);
+
+                int len = strlen(buff);
+                if (len != write(connfd, buff, strlen(buff))) {
+                    perror("write to connection failed");
+                }
+
+
+
+            }
+
+
+        } else if (requestType == "POST") {
+            std::cout << test << std::endl;
         }
 
         // 6. Close the connection with the current client and go back for another.

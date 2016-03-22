@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <title>Register with Chirper</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" media="screen and (max-width: 320px)" href="css/small-login.css" />
+</head>
+<body>
+    <div class="central-float">
+        <h1>Register</h1>
+        <form method="POST" action="/checkregistration">
+            <input type="text" autocomplete="off" name="email" placeholder="Email"></input><br />
+            <input type="text" autocomplete="off" name="username" maxlength="20" placeholder="Username"></input><br />
+            <input type="password" autocomplete="off" name="password" placeholder="Password"></input><br />
+<!--             {% if regfail %}
+            <span class="loginstatus">Account Already Exists</span><br />
+            {% endif %}
+            {% if emptyreg %}
+            <span class="loginstatus">You Can't Have Blank Fields!</span><br />
+            {% endif %}
+            {% if spacereg %}
+            <span class="loginstatus">You Can't Use Spaces in Usernames or Emails!</span><br />
+            {% endif %} -->
+            <input type="submit" value="Create Account"></input>
+        </form>
+        <a href="/">Return to Login</a>
+    </div>
+</body>
+</html>

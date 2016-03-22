@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="img/favicon.ico">
+	<title>Chirper | {{username}}</title>
+
+	<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800,800italic' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="css/home.css" />
+	<link rel="stylesheet" media="screen and (max-width: 1000px)" href="css/mid-home.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+	<script src="js/home.js"></script>
+</head>
+<body>
+
+	<div class="header">
+		<div class="head-wrap">
+			<div class="head-info">
+				<div class="title">Chirper</div>
+				<div class="username">Logged in as <b>{{username}}</b> (<em>{{email}}</em>).</div>
+				<div class="clear"></div>
+			</div>
+			<div class="head-buttons">
+				<div class="delete-user"><a class="fn-delete">Delete User</a></div>
+				<div class="logout"><a href="/logout">Logout</a></div>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</div>
+
+	<div class="page">
+
+		<div class="chirper">
+			<form method="POST" action="/postchirp">
+				<div class="chirp-center">
+					<input type="text" autocomplete="off" class="fn-chirp-field chirp-field" name="chirp" maxlength="100" placeholder="What's happening on your mind?"></input>
+					<div class="chirp-error">
+					{% if emptychirp %}
+					<span class="error">Can't chirp nothing!</span>
+					{% endif %}
+					</div>
+					<div class="chirp-stats">
+						<span class="fn-chirp-count chirp-count">100</span>
+						<input type="submit" value="Chirp!"></input>
+					</div>
+				</div>
+				<div class="clear"></div>
+			</form>
+		</div>
+
+		<div class="friends-list">
+			<h1>Friends List</h1>
+
+			<div class="add-friend">
+				<form method="POST" action="/addfriend">
+					<input type="text" autocomplete="off" name="friend" maxlength="20" placeholder="Username"></input>
+					<input type="submit" value="Add friend"></input>
+				</form>
+				{% if friendnotfound %}
+				<span class="error">User doesn't exist!</span><br />
+				{% endif %}
+				{% if alreadyfriends %}
+				<span class="error">Already friends with user!</span><br />
+				{% endif %}
+				{% if addyourself %}
+				<span class="error">Can't add yourself!</span><br />
+				{% endif %}
+				{% if emptyfriend %}
+				<span class="error">Can't add blank user!</span><br />
+				{% endif %}
+			</div>
+
+			<div class="friends">
+				{% if friends|length == 0 %}
+				No friends
+				{% endif %}
+				{% for friend in friends %}
+				<span class="friend">
+					{{ friend }} (<a href="/unfollow/{{ friend }}">Unfollow</a>)
+					{% if loop.index0 != 0 %}<a href="/moveup/{{ loop.index0 }}">&uarr;</a>{% endif %}
+					{% if loop.index0 != friends|length - 1 %}<a href="/movedown/{{ loop.index0 }}">&darr;</a>{% endif %}
+				</span><br />
+				{% endfor %}
+			</div>
+		</div>
+
+		<div class="chirp-content">
+			{% for user in chirps %}
+				<div class="chirp-user">
+					<div class="author">
+						{% if user.author == username %}
+						<h1>Your Chirps</h1>
+						{% else %}
+						<h1>{{ user.author }}</h1>
+						{% endif %}
+					</div>
+					{% if user.chirps|length == 0 %}
+					<div class="message no-chirp">This user has no chirps.</div>
+					{% endif %}
+					{% for chirp in user.chirps %}
+						<div class="message">
+							<div class="message-pad">
+							{{ chirp }}
+							{% if user.author == username %}
+								(<a href="/deletechirp/{{ loop.index0 }}">Delete Chirp</a>)
+							{% endif %}
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+			{% endfor %}
+		</div>
+
+		<div class="clear"></div>
+
+	</div>
+
+</body>
+</html>
