@@ -1,6 +1,9 @@
 // Original code from Stevens Unix Network Programming, vol 1 with minor modifications by John Sterling
 // Modifications on the modified code by Wells Santo to send a HTTP 404 response
 
+// This code will create a "web server", which web browsers can access as a client
+// The server will be hosted on localhost:8000, and will serve HTTP messages to the client
+
 #include <stdio.h>       // perror, snprintf
 #include <stdlib.h>      // exit
 #include <unistd.h>      // close, write
@@ -64,7 +67,10 @@ int main() {
 
         // We had a connection! Do our task!
 
-        // In this case, send the HTTP response
+        // Typically, this is where we would wait to see what requests are being made
+        // so that we can respond appropriately
+
+        // In this case, send a 404 HTTP response as just an example
         snprintf(buff, sizeof(buff), "HTTP/1.1 404 Not Found\r\n\r\n");
 
         int len = strlen(buff);
