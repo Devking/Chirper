@@ -23,6 +23,7 @@
 #define PORT_NUM    9000
 
 #define CHECKEMAIL  1
+#define CHECKUSER   2
 
 int main() {
     std::unordered_map<std::string, int> actions;
