@@ -22,11 +22,11 @@
 #define LISTENQ     1024    // 2nd argument to listen() -- size of listening queue
 #define PORT_NUM    9000
 
-#define CHECKEMAIL	1
+#define CHECKEMAIL  1
 
 int main() {
-	std::unordered_map<std::string, int> actions;
-	actions["CHECKEMAIL"] = 1;
+    std::unordered_map<std::string, int> actions;
+    actions["CHECKEMAIL"] = 1;
 
     int    listenfd, connfd;     // Unix file descriptors
     struct sockaddr_in servaddr; // Note C use of struct
@@ -96,35 +96,35 @@ int main() {
         // Be sure to check file existence for all files
         std::string returnString = "";
 
-		// Determine which action to take
-		switch (actions[action]) {
+        // Determine which action to take
+        switch (actions[action]) {
 
-		// Query to check email
-		case CHECKEMAIL:
-			std::ifstream emailFile("email.txt");
+        // Query to check email
+        case CHECKEMAIL:
+            std::ifstream emailFile("email.txt");
 
-			// If email file does not exist, create one and tell client that email does not exist yet
-			if (!emailFile) {
-				std::ofstream emailFile("email.txt");
-				returnString += "NO";
+            // If email file does not exist, create one and tell client that email does not exist yet
+            if (!emailFile) {
+                std::ofstream emailFile("email.txt");
+                returnString += "NO";
 
-				// If email file does exist, loop through it and find whether the email exists or not
-			}
-			else {
-				std::string email;
-				bool foundEmail = false;
-				while (getline(emailFile, email, ',')) {
-					std::cout << email << std::endl;
-					if (email == field) foundEmail = true;
-				}
-				returnString += foundEmail ? "YES" : "NO";
-			}
-			break;
+                // If email file does exist, loop through it and find whether the email exists or not
+            }
+            else {
+                std::string email;
+                bool foundEmail = false;
+                while (getline(emailFile, email, ',')) {
+                    std::cout << email << std::endl;
+                    if (email == field) foundEmail = true;
+                }
+                returnString += foundEmail ? "YES" : "NO";
+            }
+            break;
 
-		default:
-			break;
+        default:
+            break;
 
-		}
+        }
 
         // Send data back to the client
         const char* thing = returnString.c_str();
