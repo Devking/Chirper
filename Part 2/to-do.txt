@@ -26,18 +26,21 @@ non-encryption
 
 potential queries:
 
-- check email 				CHECKEMAIL test@gmail.com
-- check username            CHECKUSER admin
-- delete user
-- create user
-- create chirp 				CREATE username\nchirp
-- delete chirp 				DELETE username\nchirpid
-- delete friend   			DELETE username\nfriend
-- add friend 				ADD username\nfriend
-- populate  				POPULATE username
+- check email 				CHKEML  email
+- check username                        CHKUSR  username
+- check password                        CHKPWD  username\npassword
+- check friend                          CHKFND  username\nfriend
+- create user                           CRTUSR  username\npassword\nemail
+- delete user                           DLTUSR  username
+- create chirp 				CRTCHP  username\nchirp
+- delete chirp 				DELCHP  username\nchirpid
+- add friend 				ADDFND  username\nfriend
+- delete friend   			DELFND  username\nfriend
+- populate  				POPLAT  username
 
 later:
-- reorder friends
+- reorder friends                       MOVEUP  username\nfriendid
+                                        MOVEDN  username\nfriendid
 
 first field: action
 space
