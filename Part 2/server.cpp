@@ -25,10 +25,17 @@
 #define CHECKEMAIL  1
 #define CHECKUSER   2
 
+// A mapping for convenience for possible queries defined by the API
+void initAPIMapping (std::unordered_map<std::string, int>& actions) {
+    actions["CHECKEMAIL"] = CHECKEMAIL;
+    actions["CHECKUSER"] = CHECKUSER;
+}
+
 int main() {
     std::unordered_map<std::string, int> actions;
-    actions["CHECKEMAIL"] = 1;
+    initAPIMapping(actions);
 
+    // 0. Init variables for sockets
     int    listenfd, connfd;     // Unix file descriptors
     struct sockaddr_in servaddr; // Note C use of struct
     char   buff[MAXLINE];
@@ -98,8 +105,13 @@ int main() {
         std::string returnString = "";
 
         // Determine which action to take
-        switch (actions[action]) {
+        std::unordered_map<std::string, int>::iterator itr = actions.find(action);
+        int actionID = 0;
+        if (itr != actions.end()) {
+            actionID = itr->second;
+        }
 
+        switch (actionID) {
             // Query to check email
             case CHECKEMAIL: {
                 std::ifstream emailFile("email.txt");
@@ -118,7 +130,6 @@ int main() {
                 }
                 break;
             }
-
             // Query to check user
             case CHECKUSER: {
                 std::ifstream userFile("user.txt");
@@ -136,10 +147,9 @@ int main() {
                     returnString += foundUser ? "YES" : "NO";
                 }
             }
-
+            // The default case: if actionID is 0 (query doesn't exist)
             default:
                 break;
-
         }
 
         // Send data back to the client
