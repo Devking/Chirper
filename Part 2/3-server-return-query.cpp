@@ -90,10 +90,12 @@ int main() {
         std::string page = firstLine.substr(found + 1, found2 - found - 1);
         std::cout << "|" << page << "|" << std::endl;
 
+
+        char* thing;
+        bool valid = true;
+
         if (requestType == "GET") {
 
-            char* thing;
-            bool valid = true;
             if (page == "/") {
                 thing = "web/login.html";
             }
@@ -115,53 +117,58 @@ int main() {
                 valid = false;
             }
 
-            if (valid) {
-
-                // Open the file and put its contents in 'msg'
-                FILE* fp = fopen(thing, "rb");
-                if (!fp) {
-                    perror("Error opening file");
-                    exit(6);
-                }
-                fseek(fp, 0, SEEK_END);
-                long fsize = ftell(fp);
-                rewind(fp);
-
-                //a int currentLength;
-                //a while ((currentLength = fread(buff, MAXLINE, 1, fp)) > 0)
-                //a     write(connfd, buff, currentLength);
-
-                char* msg = (char*) malloc(fsize);
-                fread(msg, fsize, 1, fp);
-                fclose(fp);
-                std::cout << "File Size: " << fsize << "\n";
-
-                // write text-based file to a string, and write that string to the socket
-
-                // buff is a string that we are printing to
-                // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n"); // buff is maxlinelength
-                sprintf(buff, "HTTP/1.1 200 OK\r\n\r\n");
-                // this will be a length of 19 so far
-
-                // will throw a warning due to variable length
-                // also unsafe, since msg comes from the file
-
-                // need to loop over this multiple times to get
-                // the *entire* msg, if it's longer than buff
-                sprintf(buff, msg);
-
-                int len = strlen(buff);
-                if (len != write(connfd, buff, strlen(buff))) {
-                    perror("write to connection failed");
-                }
-
-
-
-            }
-
 
         } else if (requestType == "POST") {
             std::cout << test << std::endl;
+            // Need to get data field from POST (it's the last line of test, or after the \r\n\r\n)
+            // Compare the data field to what you expect, based on page the POST is being sent to
+            char* thing;
+            bool valid = true;
+            if (page == "/home") {
+                // check login information
+                thing = "web/home.html";
+            }
+
+        }
+
+        if (valid) {
+            // Open the file and put its contents in 'msg'
+            FILE* fp = fopen(thing, "rb");
+            if (!fp) {
+                perror("Error opening file");
+                exit(6);
+            }
+            fseek(fp, 0, SEEK_END);
+            long fsize = ftell(fp);
+            rewind(fp);
+
+            //a int currentLength;
+            //a while ((currentLength = fread(buff, MAXLINE, 1, fp)) > 0)
+            //a     write(connfd, buff, currentLength);
+
+            char* msg = (char*) malloc(fsize);
+            fread(msg, fsize, 1, fp);
+            fclose(fp);
+            std::cout << "File Size: " << fsize << "\n";
+
+            // write text-based file to a string, and write that string to the socket
+
+            // buff is a string that we are printing to
+            // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n"); // buff is maxlinelength
+            sprintf(buff, "HTTP/1.1 200 OK\r\n\r\n");
+            // this will be a length of 19 so far
+
+            // will throw a warning due to variable length
+            // also unsafe, since msg comes from the file
+
+            // need to loop over this multiple times to get
+            // the *entire* msg, if it's longer than buff
+            sprintf(buff, msg);
+
+            int len = strlen(buff);
+            if (len != write(connfd, buff, strlen(buff))) {
+                perror("write to connection failed");
+            }
         }
 
         // 6. Close the connection with the current client and go back for another.
