@@ -13,6 +13,9 @@
                          // bind, listen, accept
 #include <netinet/in.h>  // servaddr, INADDR_ANY, htons
 
+#include <string>
+#include <iostream>
+
 #define MAXLINE     4096    // max text line length
 #define BUFFSIZE    8192    // buffer size for reads and writes
 #define SA          struct sockaddr
@@ -74,39 +77,48 @@ int main() {
             exit(5);
         }
         // this works -- gets the HTTP Request!
-        // printf("%s", readbuff);
+        printf("\n\nBELOW IS THE HTTP REQUEST:\n");
+        std::string test = readbuff;
+        int found = test.find("\r\n");
+        std::string firstLine = test.substr(0, found);
+        std::cout << firstLine << std::endl;
 
         // we need to get just the first line to see what action to take
-        char* firstLine = strtok(readbuff, "\r\n");
-        printf("%s", firstLine);
+        // char* crlf = strstr(readbuff, "\r\n");
+        // int firstLineSize = crlf - readbuff;
+        // char firstLine[firstLineSize];
+        // strncpy(firstLine, readbuff, firstLineSize);
+        // printf("\n\nBELOW IS METADATA:\n");
+        // printf("%d", firstLineSize);
+        // printf("%s", firstLine);
 
-        // // Open the file and put its contents in 'msg'
-        // FILE* fp = fopen("web/login.html", "rb");
-        // if (!fp) {
-        //     perror("Error opening file");
-        //     exit(6);
-        // }
-        // fseek(fp, 0, SEEK_END);
-        // long fsize = ftell(fp);
-        // rewind(fp);
-        // char* msg = (char*) malloc(fsize);
-        // fread(msg, fsize, 1, fp);
-        // fclose(fp);
+        // Open the file and put its contents in 'msg'
+        FILE* fp = fopen("web/login.html", "rb");
+        if (!fp) {
+            perror("Error opening file");
+            exit(6);
+        }
+        fseek(fp, 0, SEEK_END);
+        long fsize = ftell(fp);
+        rewind(fp);
+        char* msg = (char*) malloc(fsize);
+        fread(msg, fsize, 1, fp);
+        fclose(fp);
 
-        // // In this case, send our login.html file directly
-        // // printf("%s", msg);
+        // In this case, send our login.html file directly
+        // printf("%s", msg);
 
-        // // buff is a string that we are printing to
-        // // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n"); // buff is maxlinelength
-        // sprintf(buff, "HTTP/1.1 200 OK\r\n\r\n");
-        // // will throw a warning due to variable length
-        // // also unsafe, since msg comes from the file
-        // sprintf(buff, msg);
+        // buff is a string that we are printing to
+        // snprintf(buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n"); // buff is maxlinelength
+        sprintf(buff, "HTTP/1.1 200 OK\r\n\r\n");
+        // will throw a warning due to variable length
+        // also unsafe, since msg comes from the file
+        sprintf(buff, msg);
 
-        // int len = strlen(buff);
-        // if (len != write(connfd, buff, strlen(buff))) {
-        //     perror("write to connection failed");
-        // }
+        int len = strlen(buff);
+        if (len != write(connfd, buff, strlen(buff))) {
+            perror("write to connection failed");
+        }
 
         // 6. Close the connection with the current client and go back for another.
         close(connfd);
