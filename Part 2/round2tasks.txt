@@ -1,4 +1,4 @@
-As per Rob: 
+As per Rob:
     - Need to implement time stamps
     - Profile page per user?
 
@@ -21,3 +21,5 @@ Provide clear documentation describing:
 - any modifications to the user interface.
 
 ------------------------------------------------------------------------
+
+Working in a new folder, since it's likely that we'll be using a completely different directory organization.
