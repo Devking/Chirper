@@ -149,13 +149,18 @@ int main() {
             }
             // Check that the login is correct
             case CHKPWD: {
+
+                //////////
+                // Right now, grabbing the password field (after the \n) is not working
+                //////////
+                
                 std::string password = query.substr(newline+1);
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
                 if (mainFile) {
                     std::string filePassword;
                     getline(mainFile, filePassword);
-                    std::cout << password << std::endl;
+                    std::cout << "|" << password << "|" << std::endl;
                     // Send a response saying whether login was successful or not
                     if (filePassword == password) {
                         returnString += "YES";
