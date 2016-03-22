@@ -16,19 +16,22 @@
 #include <unordered_map>
 #include <iostream>      // debugging purposes only
 #include <fstream>       // opening/closing/writing/reading files
+#include <cstdio>        // remove
 
-#define MAXLINE     4096    // max text line length
-#define SA          struct sockaddr
-#define LISTENQ     1024    // 2nd argument to listen() -- size of listening queue
-#define PORT_NUM    9000
+#define MAXLINE  4096    // max text line length
+#define SA       struct sockaddr
+#define LISTENQ  1024    // 2nd argument to listen() -- size of listening queue
+#define PORT_NUM 9000
 
-#define CHECKEMAIL  1
-#define CHECKUSER   2
+#define CHKEML 1
+#define CHKUSR 2
+#define DELUSR 6
 
 // A mapping for convenience for possible queries defined by the API
 void initAPIMapping (std::unordered_map<std::string, int>& actions) {
-    actions["CHECKEMAIL"] = CHECKEMAIL;
-    actions["CHECKUSER"] = CHECKUSER;
+    actions["CHKEML"] = CHKEML;
+    actions["CHKUSR"] = CHKUSR;
+    actions["DELUSR"] = DELUSR;
 }
 
 int main() {
@@ -113,7 +116,7 @@ int main() {
 
         switch (actionID) {
             // Query to check email
-            case CHECKEMAIL: {
+            case CHKEML: {
                 std::ifstream emailFile("email.txt");
 
                 if (!emailFile) {
@@ -131,7 +134,7 @@ int main() {
                 break;
             }
             // Query to check user
-            case CHECKUSER: {
+            case CHKUSR: {
                 std::ifstream userFile("user.txt");
 
                 if (!userFile) {
@@ -146,6 +149,17 @@ int main() {
                     }
                     returnString += foundUser ? "YES" : "NO";
                 }
+            }
+            // Delete a user -- assume we really mean it when we call this
+            case DELUSR: {
+                // Delete the file with the user
+                std::string fileName = field + ".txt";
+                const char* fileNameChar = fileName.c_str();
+                if (remove(fileNameChar) != 0) {
+                    std::cout << "Error deleting file!" << std::endl;
+                }
+                // Delete the email from the email text file
+                // Delete the username from the username text file
             }
             // The default case: if actionID is 0 (query doesn't exist)
             default:

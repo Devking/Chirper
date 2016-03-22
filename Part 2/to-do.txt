@@ -26,17 +26,17 @@ non-encryption
 
 potential queries:
 
-- check email 				CHKEML  email
-- check username                        CHKUSR  username
-- check password                        CHKPWD  username\npassword
+- check email                           CHKEML  email                           1
+- check username                        CHKUSR  username                        2
+- check password                        CHKPWD  username\npassword              
 - check friend                          CHKFND  username\nfriend
 - create user                           CRTUSR  username\npassword\nemail
-- delete user                           DELUSR  username
-- create chirp 				CRTCHP  username\nchirp
-- delete chirp 				DELCHP  username\nchirpid
-- add friend 				ADDFND  username\nfriend
-- delete friend   			DELFND  username\nfriend
-- populate  				POPLAT  username
+- delete user                           DELUSR  username\nemail                 6
+- create chirp                          CRTCHP  username\nchirp
+- delete chirp                          DELCHP  username\nchirpid
+- add friend                            ADDFND  username\nfriend
+- delete friend                         DELFND  username\nfriend
+- populate                              POPLAT  username
 
 later:
 - reorder friends                       MOVEUP  username\nfriendid
