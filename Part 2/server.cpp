@@ -99,30 +99,31 @@ int main() {
         // Determine which action to take
         switch (actions[action]) {
 
-        // Query to check email
-        case CHECKEMAIL:
-            std::ifstream emailFile("email.txt");
+            // Query to check email
+            case CHECKEMAIL: {
+                std::ifstream emailFile("email.txt");
 
-            // If email file does not exist, create one and tell client that email does not exist yet
-            if (!emailFile) {
-                std::ofstream emailFile("email.txt");
-                returnString += "NO";
+                // If email file does not exist, create one and tell client that email does not exist yet
+                if (!emailFile) {
+                    std::ofstream emailFile("email.txt");
+                    returnString += "NO";
 
-                // If email file does exist, loop through it and find whether the email exists or not
-            }
-            else {
-                std::string email;
-                bool foundEmail = false;
-                while (getline(emailFile, email, ',')) {
-                    std::cout << email << std::endl;
-                    if (email == field) foundEmail = true;
+                    // If email file does exist, loop through it and find whether the email exists or not
                 }
-                returnString += foundEmail ? "YES" : "NO";
+                else {
+                    std::string email;
+                    bool foundEmail = false;
+                    while (getline(emailFile, email, ',')) {
+                        std::cout << email << std::endl;
+                        if (email == field) foundEmail = true;
+                    }
+                    returnString += foundEmail ? "YES" : "NO";
+                }
+                break;
             }
-            break;
 
-        default:
-            break;
+            default:
+                break;
 
         }
 
