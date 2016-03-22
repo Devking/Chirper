@@ -63,27 +63,25 @@ int main() {
 
         fprintf(stderr, "A client is connected!\n");
 
-        // We had a connection! Do our task!
+        // We have a connection! Do our task!
 
         // Get the client's request and store it in readbuff
         char readbuff[MAXLINE];
 
-        // how to make sure read is given in HTTP format?
-        // aka, read not just to first newline, but to first clrf?
         int result = read(connfd, readbuff, MAXLINE);
         if (result < 1) {
             perror("read failed");
             exit(5);
         }
-        // this works -- gets the HTTP Request!
-        printf("\n\nBELOW IS THE HTTP REQUEST:\n");
+
+        // Break up the HTTP request
         std::string test = readbuff;
         int found = test.find("\r\n");
         std::string firstLine = test.substr(0, found);
 
         found = firstLine.find(" ");
         std::string requestType = firstLine.substr(0, found);
-        std::cout << "|" << requestType << "|" << std::endl;
+        std::cout << "|" << requestType << "| ";
 
         int found2 = firstLine.find(" ", found + 1);
         std::string page = firstLine.substr(found + 1, found2 - found - 1);
@@ -121,6 +119,9 @@ int main() {
             else if (page == "/home") {
                 thing = (char *)"web/home.html";
             }
+            else if (page == "/logout") {
+                thing = (char *)"web/login.html";
+            }
             else if (page == "/js/home.js") {
                 thing = (char *)"web/js/home.js";
             } else {
@@ -139,9 +140,13 @@ int main() {
             }
 
             // POST for logout
-            if (page == "/logout") {
+            else if (page == "/logout") {
                 thing = (char*)"web/login.html";
                 // clear cookies for this session
+            }
+
+            else {
+                valid = false;
             }
 
         }
@@ -164,7 +169,7 @@ int main() {
             char* msg = (char*) malloc(fsize);
             fread(msg, fsize, 1, fp);
             fclose(fp);
-            std::cout << "File Size: " << fsize << "\n";
+            std::cout << "File Size: " << fsize << "\n\n\n";
 
             // write text-based file to a string, and write that string to the socket
 
@@ -173,13 +178,18 @@ int main() {
             sprintf(buff, "HTTP/1.1 200 OK\r\n\r\n");
             // this will be a length of 19 so far
 
-            // will throw a warning due to variable length
-            // also unsafe, since msg comes from the file
-
             // need to loop over this multiple times to get
             // the *entire* msg, if it's longer than buff
-            sprintf(buff, msg);
+            sprintf(buff, "%s", msg);
 
+            int len = strlen(buff);
+            if (len != write(connfd, buff, strlen(buff))) {
+                perror("write to connection failed");
+            }
+        } else {
+
+            // If page is not valid, then return 404 Not Found response
+            snprintf(buff, sizeof(buff), "HTTP/1.1 404 Not Found\r\n\r\n");
             int len = strlen(buff);
             if (len != write(connfd, buff, strlen(buff))) {
                 perror("write to connection failed");
