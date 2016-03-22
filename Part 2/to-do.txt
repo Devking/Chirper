@@ -28,7 +28,7 @@ potential queries:
 
 - check email                           CHKEML  email                           1
 - check username                        CHKUSR  username                        2
-- check password                        CHKPWD  username\npassword              
+- check password                        CHKPWD  username\npassword              3
 - check friend                          CHKFND  username\nfriend
 - create user                           CRTUSR  username\npassword\nemail
 - delete user                           DELUSR  username\nemail                 6
@@ -53,3 +53,17 @@ optional data field: friend name, chirp content, chirp id, whatnot
 email file: csv of emails
 	- emails only separated by commas, no spaces
 	- need comma after last email as well!
+
+------
+
+user files will be in the 'users' directory
+each users' file:
+
+password\n
+email\n
+# of friends\n
+friend1\n
+friend2\n
+# of chirps\n
+chirp1\n
+chirp2\n

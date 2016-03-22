@@ -25,12 +25,14 @@
 
 #define CHKEML 1
 #define CHKUSR 2
+#define CHKPWD 3
 #define DELUSR 6
 
 // A mapping for convenience for possible queries defined by the API
 void initAPIMapping (std::unordered_map<std::string, int>& actions) {
     actions["CHKEML"] = CHKEML;
     actions["CHKUSR"] = CHKUSR;
+    actions["CHKPWD"] = CHKPWD;
     actions["DELUSR"] = DELUSR;
 }
 
@@ -90,16 +92,16 @@ int main() {
         }
 
         // Break up the client's request
-        std::string test = readbuff;
+        std::string query = readbuff;
 
         // Break up requests based on specified API:
         // ACTION FIELD\n
         // OPTIONAL DATA
-        int space = test.find(' ');
-        int newline = test.find('\n');
+        int space = query.find(' ');
+        int newline = query.find('\n');
         int fieldLength = newline - space - 2;
-        std::string action = test.substr(0, space);
-        std::string field = test.substr(space + 1, fieldLength);
+        std::string action = query.substr(0, space);
+        std::string field = query.substr(space + 1, fieldLength);
 
         std::cout << "|" << action << "|" << "|" <<  field << "|" << std::endl;
 
@@ -125,10 +127,7 @@ int main() {
                 } else {
                     std::string email;
                     bool foundEmail = false;
-                    while (getline(emailFile, email, ',')) {
-                        std::cout << email << std::endl;
-                        if (email == field) foundEmail = true;
-                    }
+                    while (getline(emailFile, email, ',')) if (email == field) foundEmail = true;
                     returnString += foundEmail ? "YES" : "NO";
                 }
                 break;
@@ -143,23 +142,43 @@ int main() {
                 } else {
                     std::string user;
                     bool foundUser = false;
-                    while (getline(userFile, user, ',')) {
-                        std::cout << user << std::endl;
-                        if (user == field) foundUser = true;
-                    }
+                    while (getline(userFile, user, ',')) if (user == field) foundUser = true;
                     returnString += foundUser ? "YES" : "NO";
                 }
+                break;
+            }
+            // Check that the login is correct
+            case CHKPWD: {
+                std::string password = query.substr(newline+1);
+                std::string fileName = "users/" + field + ".txt";
+                std::ifstream mainFile(fileName.c_str());
+                if (mainFile) {
+                    std::string filePassword;
+                    getline(mainFile, filePassword);
+                    std::cout << password << std::endl;
+                    // Send a response saying whether login was successful or not
+                    if (filePassword == password) {
+                        returnString += "YES";
+                    } else {
+                        returnString += "NO";
+                    }
+                } else {
+                    std::cout << "Did not find that user." << std::endl;
+                    returnString += "NO";
+                }
+                break;
             }
             // Delete a user -- assume we really mean it when we call this
             case DELUSR: {
                 // Delete the file with the user
-                std::string fileName = field + ".txt";
+                std::string fileName = "users/" + field + ".txt";
                 const char* fileNameChar = fileName.c_str();
                 if (remove(fileNameChar) != 0) {
                     std::cout << "Error deleting file!" << std::endl;
                 }
                 // Delete the email from the email text file
                 // Delete the username from the username text file
+                break;
             }
             // The default case: if actionID is 0 (query doesn't exist)
             default:
