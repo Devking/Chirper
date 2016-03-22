@@ -36,8 +36,17 @@ potential queries:
 - add friend 				ADD username\nfriend
 - populate  				POPULATE username
 
+later:
+- reorder friends
+
 first field: action
 space
 second field: username/email
 newline
 optional data field: friend name, chirp content, chirp id, whatnot
+
+------
+
+email file: csv of emails
+	- emails only separated by commas, no spaces
+	- need comma after last email as well!
