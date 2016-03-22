@@ -1,0 +1,43 @@
+1. remove manifest from python
+2. set up client connection using python
+3. serve user information using cpp
+4. write API for client-server calls
+
+------
+
+1 file for list of users
+1 file for each user
+1 file for list of emails
+
+------
+
+we do a file read on *every* request, because
+we do not want to store all of the user data
+in memory and potentially cause a stack overflow!
+
+------
+
+client opens a connection for every request (not persistent)
+we look through the file each time based on what the client requests
+
+non-encryption
+
+------
+
+potential queries:
+
+- check email 				CHECKEMAIL test@email.com
+- check username
+- delete user
+- create user
+- create chirp 				CREATE username\nchirp
+- delete chirp 				DELETE username\nchirpid
+- delete friend   			DELETE username\nfriend
+- add friend 				ADD username\nfriend
+- populate  				POPULATE username
+
+first field: action
+space
+second field: username/email
+newline
+optional data field: friend name, chirp content, chirp id, whatnot

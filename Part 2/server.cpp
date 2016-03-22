@@ -13,7 +13,8 @@
 #include <netinet/in.h>  // servaddr, INADDR_ANY, htons
 
 #include <string>
-#include <iostream>
+#include <iostream>      // debugging purposes only
+#include <fstream>       // opening/closing/writing/reading files
 
 #define MAXLINE     4096    // max text line length
 #define SA          struct sockaddr
@@ -74,10 +75,44 @@ int main() {
         // Break up the client's request
         std::string test = readbuff;
 
-        // Break up requests based on specified API
+        // Break up requests based on specified API:
+        // ACTION FIELD\n
+        // OPTIONAL DATA
+        int space = test.find(' ');
+        int newline = test.find('\n');
+        int fieldLength = newline - space - 2;
+        std::string action = test.substr(0, space);
+        std::string field = test.substr(space + 1, fieldLength);
+
+        std::cout << "|" << action << "|" << "|" <<  field << "|" << std::endl;
+
+        // Process the query / work with files
+        // Be sure to check file existence for all files
+        std::string returnString = "";
+
+        // Query to check email
+        if (action == "CHECKEMAIL") {
+        	std::ifstream emailFile("email.txt");
+
+        	// If email file does not exist, create one and tell client that email does not exist yet
+        	if (!emailFile) {
+        		std::ofstream emailFile("email.txt");
+        		returnString += "NO";
+
+        	// If email file does exist, loop through it and find whether the email exists or not
+        	} else {
+        		std::string email;
+        		bool foundEmail = false;
+        		while(getline(emailFile, email, ',')) {
+        			std::cout << email << std::endl;
+        			if (email == field) foundEmail = true;
+        		}
+        		returnString += foundEmail ? "YES" : "NO";
+        	}
+        }
 
         // Send data back to the client
-        const char* thing = test.c_str();
+        const char* thing = returnString.c_str();
         sprintf(buff, "%s\n", thing);
         int len = strlen(buff);
         if (len != write(connfd, buff, strlen(buff))) {

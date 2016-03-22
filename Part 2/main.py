@@ -8,6 +8,7 @@ from flask import Flask, render_template, redirect, request, url_for, session
 import socket
 
 # Import in-memory user information, aka some default dummy created users and dummy messages
+# We will remove this from our
 from manifest import users, emails
 
 # Create the Flask object
