@@ -31,7 +31,7 @@ potential queries:
 - check password                        CHKPWD  username\npassword
 - check friend                          CHKFND  username\nfriend
 - create user                           CRTUSR  username\npassword\nemail
-- delete user                           DLTUSR  username
+- delete user                           DELUSR  username
 - create chirp 				CRTCHP  username\nchirp
 - delete chirp 				DELCHP  username\nchirpid
 - add friend 				ADDFND  username\nfriend
