@@ -1,3 +1,6 @@
+// Original code from Stevens Unix Network Programming, vol 1 with minor modifications by John Sterling
+// Modifications on the modified code by Wells Santo to send a HTTP 404 response
+
 #include <stdio.h>       // perror, snprintf
 #include <stdlib.h>      // exit
 #include <unistd.h>      // close, write
@@ -10,7 +13,7 @@
 #define MAXLINE     4096    // max text line length
 #define BUFFSIZE    8192    // buffer size for reads and writes
 #define SA          struct sockaddr
-#define LISTENQ     1024    // 2nd argument to listen()
+#define LISTENQ     1024    // 2nd argument to listen() -- how many people to listen to / listening queue
 #define PORT_NUM    8000
 
 int main() {
@@ -24,7 +27,7 @@ int main() {
         exit(1);
     }
 
-    // 2. Set up the sockaddr_in
+    // 2. Set up the socket address struct (specify IPv4, IP addresses, and port #)
     memset(&servaddr, 0, sizeof(servaddr));       // zero it.
     servaddr.sin_family      = AF_INET;           // Specify the family
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // specifies that the server will pick up traffic from any IP that your machine may service; this may very well just be "localhost"
@@ -49,16 +52,21 @@ int main() {
     //    Last arg is where to put the size of the sockaddr if
     //    we asked for one
     for ( ; ; ) {
-    fprintf(stderr, "Ready to connect.\n");
+        // Print the following message to stderr
+        fprintf(stderr, "Server awaiting connection...\n");
+
         if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
             perror("accept failed");
             exit(4);
         }
 
-        fprintf(stderr, "Connected\n");
+        fprintf(stderr, "A client is connected!\n");
 
-        // We had a connection.  Do whatever our task is.
-        snprintf(buff, sizeof(buff), "Test!");
+        // We had a connection! Do our task!
+
+        // In this case, send the HTTP response
+        snprintf(buff, sizeof(buff), "HTTP/1.1 404 Not Found\r\n\r\n");
+
         int len = strlen(buff);
         if (len != write(connfd, buff, strlen(buff))) {
             perror("write to connection failed");
