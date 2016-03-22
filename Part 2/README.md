@@ -8,11 +8,13 @@ The not-very-original social media alternative, designed by **Wells Lucas Santo*
 
 # Running the Application
 
-Compile `server.cpp` and create the output executable, such as by running the following line in a command line environment on a *nix machine:
+Compile `server.cpp` and create the output executable.
+
+As an example, you can accomplish this by running the following command in terminal if you have the g++ compiler installed:
 
 `g++ -std=c++11 server.cpp -o server`
 
-Then run the actual server executable:
+Afterwards, run the actual server executable:
 
 `./server`
 
