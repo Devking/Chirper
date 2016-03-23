@@ -1,7 +1,6 @@
 First:
 
-`make`
-`./server`
+`make run`
 
 Then:
 

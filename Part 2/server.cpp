@@ -65,14 +65,14 @@ void sendMessage (const std::string& returnString, char buff[MAXLINE], int connf
 }
 
 bool checkUser (const std::string& username) {
-    std::ifstream userFile("user.txt");
+    std::ifstream userFile("manifest/user.txt");
     if (!userFile) {
-        std::ofstream userFile("user.txt");
+        std::ofstream userFile("manifest/user.txt");
         userFile.close();
         return false;
     } else {
         std::string user;
-        while (getline(userFile, user, ',')) 
+        while (getline(userFile, user, ','))
             if (user == username) {
                 userFile.close();
                 return true;
@@ -118,7 +118,7 @@ void deleteFriend (const std::string& fileName, const std::string& friendName) {
     fileString += std::to_string(noFriends - 1) + "\n";
     for (int i = 0; i < noFriends; i++) {
         getline(mainFile, temp);
-        if (temp != friendName) fileString += temp + "\n"; 
+        if (temp != friendName) fileString += temp + "\n";
     }
     while (getline(mainFile, temp))
         fileString += temp + "\n";
@@ -234,7 +234,7 @@ void moveUserDown (const std::string& fileName, int userid) {
             fileString += temp + "\n";
         mainFile.close();
         std::ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;   
+        mainFile2 << fileString;
     }
 }
 
@@ -279,7 +279,7 @@ int main() {
     }
     fprintf(stderr, "The Python client is connected!\n");
 
-    // 
+    //
     for ( ; ; ) {
         // Get the client's request and store it in readbuff
         char readbuff[MAXLINE];
@@ -316,10 +316,10 @@ int main() {
         switch (actionID) {
             // Query to check email
             case CHKEML: {
-                std::ifstream emailFile("email.txt");
+                std::ifstream emailFile("manifest/email.txt");
 
                 if (!emailFile) {
-                    std::ofstream emailFile("email.txt");
+                    std::ofstream emailFile("manifest/email.txt");
                     returnString += "NO";
                 } else {
                     std::string email;
@@ -374,7 +374,7 @@ int main() {
                 if (remove(fileName.c_str()) != 0)
                     perror("deleting user file failed");
                 // Delete the email from the email text file
-                std::ifstream mailFile("email.txt");
+                std::ifstream mailFile("manifest/email.txt");
                 std::string mailString = "";
                 if (mailFile) {
                     std::string temp;
@@ -382,11 +382,11 @@ int main() {
                         if (temp != email) mailString += temp + ",";
                 }
                 mailFile.close();
-                std::ofstream mailFile2("email.txt");
+                std::ofstream mailFile2("manifest/email.txt");
                 mailFile2 << mailString;
                 mailFile2.close();
                 // Delete the username from the username text file
-                std::ifstream nameFile("user.txt");
+                std::ifstream nameFile("manifest/user.txt");
                 std::string nameString = "";
                 if (nameFile) {
                     std::string temp;
@@ -394,7 +394,7 @@ int main() {
                         if (temp != field) nameString += temp + ",";
                 }
                 nameFile.close();
-                std::ofstream nameFile2("user.txt");
+                std::ofstream nameFile2("manifest/user.txt");
                 nameFile2 << nameString;
                 sendMessage(returnString, buff, connfd);
                 break;
@@ -416,11 +416,11 @@ int main() {
                 mainFile << email << "\n";
                 mainFile << "0\n0\n";
 
-                std::ofstream mailFile("email.txt", std::ios_base::app);
+                std::ofstream mailFile("manifest/email.txt", std::ios_base::app);
                 mailFile << email << ",";
                 mailFile.close();
 
-                std::ofstream userFile("user.txt", std::ios_base::app);
+                std::ofstream userFile("manifest/user.txt", std::ios_base::app);
                 userFile << field << ",";
                 userFile.close();
 
@@ -533,7 +533,7 @@ int main() {
             }
 
             // Populate the main page for the user
-            case POPLAT: {                
+            case POPLAT: {
                 std::string fileName = "users/" + field + ".txt";
                 // This will first make sure that the friend's list is valid
                 checkValidFriends(fileName);
