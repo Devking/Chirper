@@ -184,7 +184,6 @@ void moveUserDown (const std::string& fileName, int userid) {
 void checkEmail (const std::string& emailToFind, char buff[MAXLINE], int connfd) {
     std::string returnString = "";
     std::ifstream emailFile("manifest/email.txt");
-
     if (!emailFile) {
         std::ofstream emailFile("manifest/email.txt");
         returnString += "NO";
@@ -258,26 +257,20 @@ void createUser (int newline, const std::string& query, const std::string& usern
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
     std::string password = query.substr(newline+1, passwordlength);
-
     int thirdnewline = query.find('\n', secondnewline+1);
     int emaillength = thirdnewline - secondnewline - 1;
     std::string email = query.substr(secondnewline+1, emaillength);
-
     std::string fileName = "users/" + username + ".txt";
     std::ofstream mainFile(fileName.c_str());
-
     mainFile << password << "\n";
     mainFile << email << "\n";
     mainFile << "0\n0\n";
-
     std::ofstream mailFile("manifest/email.txt", std::ios_base::app);
     mailFile << email << ",";
     mailFile.close();
-
     std::ofstream userFile("manifest/user.txt", std::ios_base::app);
     userFile << username << ",";
     userFile.close();
-
     returnString += "YES";
     sendMessage(returnString, buff, connfd);
 }
@@ -287,7 +280,6 @@ void createChirp (int newline, const std::string& query, const std::string& user
     int secondnewline = query.find('\n', newline+1);
     int chirplength = secondnewline - newline - 1;
     std::string chirp = query.substr(newline+1, chirplength);
-
     std::string fileName = "users/" + username + ".txt";
     std::ifstream mainFile(fileName.c_str());
     std::string fileString = "";
@@ -353,7 +345,6 @@ void addFriend (int newline, const std::string& query, const std::string& userna
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
     std::string friendName = query.substr(newline+1, friendlength);
-
     std::string fileName = "users/" + username + ".txt";
     std::ifstream mainFile(fileName.c_str());
     std::string fileString = "";
@@ -432,7 +423,6 @@ void populatePage (const std::string& username, char buff[MAXLINE], int connfd, 
         read(connfd, readbuff, MAXLINE); // stuck
     }
     mainFile.close();
-
     // Go through the friends list and send the chirps of each friend
     for (int i = 0; i < friendsList.size(); i++) {
         std::string friendFileName = "users/" + friendsList[i] + ".txt";

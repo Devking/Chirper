@@ -1,8 +1,6 @@
-// Original code from Stevens Unix Network Programming, vol 1 with minor modifications by John Sterling
-// Modifications on the modified code by Wells Santo and Patrick Kingchatchaval
-
-// This code acts as a data server that serves data to the Python web server
-// Runs on localhost:9000
+// Socket code from Stevens Unix Network Programming, vol 1 with minor modifications by John Sterling
+// Remaining code by Wells Santo and Patrick Kingchatchaval
+// This code acts as a data server (on localhost:9000) that serves data to the Python web server
 
 #include <stdio.h>       // perror, snprintf
 #include <stdlib.h>      // exit
@@ -67,7 +65,6 @@ int main() {
             perror("read failed");
             exit(5);
         }
-
         // Break up the client's request based on API-defined formatting
         std::string query = readbuff;
         int space = query.find(' ');
@@ -75,7 +72,6 @@ int main() {
         int fieldLength = newline - space - 1;
         std::string action = query.substr(0, space);
         std::string field = query.substr(space + 1, fieldLength);
-
         // Determine which action to take using the query map
         auto itr = actions.find(action);
         int actionID = (itr != actions.end()) ? itr->second : 0;
