@@ -195,3 +195,19 @@ void checkEmail (const std::string& emailToFind, char buff[MAXLINE], int connfd)
     emailFile.close();
     sendMessage(returnString, buff, connfd);
 }
+
+void checkPassword (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
+    std::string returnString = "NO";
+    int secondnewline = query.find('\n', newline+1);
+    int passwordlength = secondnewline - newline - 1;
+    std::string password = query.substr(newline+1, passwordlength);
+    std::string fileName = "users/" + username + ".txt";
+    std::ifstream mainFile(fileName.c_str());
+    if (mainFile) {
+        std::string filePassword;
+        getline(mainFile, filePassword);
+        if (filePassword == password) returnString = "YES";
+    }
+    mainFile.close();
+    sendMessage(returnString, buff, connfd);
+}

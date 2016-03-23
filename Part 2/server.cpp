@@ -86,34 +86,10 @@ int main() {
         // Determine which action to take using the query map
         auto itr = actions.find(action);
         int actionID = (itr != actions.end()) ? itr->second : 0;
-
         switch (actionID) {
             case CHKEML: checkEmail(field, buff, connfd); break;
             case CHKUSR: sendMessage(checkUser(field)?"YES":"NO", buff, connfd); break;
-            // Check that the login is correct
-            case CHKPWD: {
-                std::string returnString = "";
-                int secondnewline = query.find('\n', newline+1);
-                int passwordlength = secondnewline - newline - 1;
-                std::string password = query.substr(newline+1, passwordlength);
-                std::string fileName = "users/" + field + ".txt";
-                std::ifstream mainFile(fileName.c_str());
-                if (mainFile) {
-                    std::string filePassword;
-                    getline(mainFile, filePassword);
-                    // Send a response saying whether login was successful or not
-                    if (filePassword == password) {
-                        returnString += "YES";
-                    } else {
-                        returnString += "NO";
-                    }
-                } else {
-                    returnString += "NO";
-                }
-                mainFile.close();
-                sendMessage(returnString, buff, connfd);
-                break;
-            }
+            case CHKPWD: checkPassword(newline, query, field, buff, connfd); break;
             // Delete a user -- assume we really mean it when we call this
             case DELUSR: {
                 // Delete the file with the user
