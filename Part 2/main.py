@@ -161,7 +161,7 @@ def addfriend():
             return redirect(url_for('home', friendnotfound = True))
         s.sendall('CHKFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
         chkfnd = s.recv(4096)
-        if chkfnd = 'YES':
+        if chkfnd == 'YES':
             return redirect(url_for('home', alreadyfriends = True))
         s.sendall('ADDFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
         s.recv(4096)

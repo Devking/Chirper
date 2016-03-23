@@ -26,16 +26,22 @@
 #define CHKEML 1
 #define CHKUSR 2
 #define CHKPWD 3
+#define CHKFND 4
 #define CRTUSR 5
 #define DELUSR 6
+#define CRTCHP 7
+#define ADDFND 8
 
 // A mapping for convenience for possible queries defined by the API
 void initAPIMapping (std::unordered_map<std::string, int>& actions) {
     actions["CHKEML"] = CHKEML;
     actions["CHKUSR"] = CHKUSR;
     actions["CHKPWD"] = CHKPWD;
+    actions["CHKFND"] = CHKFND;
     actions["CRTUSR"] = CRTUSR;
     actions["DELUSR"] = DELUSR;
+    actions["CRTCHP"] = CRTCHP;
+    actions["ADDFND"] = ADDFND;
 }
 
 int main() {
@@ -238,6 +244,119 @@ int main() {
                 userFile.close();
 
                 returnString += "YES";
+                break;
+            }
+
+            // Create a chirp
+            case CRTCHP: {
+                int secondnewline = query.find('\n', newline+1);
+                int chirplength = secondnewline - newline - 1;
+                std::string chirp = query.substr(newline+1, chirplength);
+                std::cout << "|" << chirp << "|" << std::endl;
+
+                std::string fileName = "users/" + field + ".txt";
+                std::ifstream mainFile(fileName.c_str());
+                std::string fileString = "";
+                if (mainFile) {
+                    std::string temp;
+                    // Get the first two lines, they don't change
+                    getline(mainFile, temp);
+                    fileString += temp + "\n";
+                    getline(mainFile, temp);
+                    fileString += temp + "\n";
+                    // Get the # of friends line
+                    getline(mainFile, temp);
+                    fileString += temp + "\n";
+                    int noFriends = atoi(temp.c_str());
+                    // Skip all of the friends lines
+                    for (int i = 0; i < noFriends; i++) {
+                        getline(mainFile, temp);
+                        fileString += temp + "\n";
+                    }
+                    // Get the # of chirps line and increment by 1
+                    getline(mainFile, temp);
+                    int noChirps = atoi(temp.c_str());
+                    noChirps++;
+                    fileString += std::to_string(noChirps) + "\n";
+                    // Append the new chirp
+                    fileString += chirp + "\n";
+                    // Append the rest of the old file
+                    while (getline(mainFile, temp)) {
+                        fileString += temp + "\n";
+                    }
+                    mainFile.close();
+                    returnString += "YES";
+                } else {
+                    returnString += "NO";
+                }
+                break;
+            }
+
+            // Add friend - At this point, confirmed it's not a duplicate friend
+            case ADDFND: {
+                int secondnewline = query.find('\n', newline+1);
+                int friendlength = secondnewline - newline - 1;
+                std::string friendName = query.substr(newline+1, friendlength);
+                std::cout << "|" << friendName << "|" << std::endl;
+
+                std::string fileName = "users/" + field + ".txt";
+                std::ifstream mainFile(fileName.c_str());
+                std::string fileString = "";
+                if (mainFile) {
+                    std::string temp;
+                    // Get the first two lines, they don't change
+                    getline(mainFile, temp);
+                    fileString += temp + "\n";
+                    getline(mainFile, temp);
+                    fileString += temp + "\n";
+                    // Get the # of friends line and increment by 1
+                    getline(mainFile,temp);
+                    int noFriends = atoi(temp.c_str());
+                    noFriends++;
+                    fileString += std::to_string(noFriends) + "\n";
+                    // Append the new friend
+                    fileString += friendName + "\n";
+                    // Append the rest of the old file
+                    while (getline(mainFile, temp)) {
+                        fileString += temp + "\n";
+                    }
+                    mainFile.close();
+                    returnString += "YES";
+                } else {
+                    returnString += "NO";
+                }
+                break;
+            }
+
+            // Check if friend exists in the friend's list already or not
+            case CHKFND: {
+                int secondnewline = query.find('\n', newline+1);
+                int friendlength = secondnewline - newline - 1;
+                std::string friendName = query.substr(newline+1, friendlength);
+                std::cout << "|" << friendName << "|" << std::endl;
+                
+                std::string fileName = "users/" + field + ".txt";
+                std::ifstream mainFile(fileName.c_str());
+                bool friendExists = false;
+                if (mainFile) {
+                    std::string temp;
+                    // Get the first two lines, they aren't needed
+                    getline(mainFile, temp);
+                    getline(mainFile, temp);
+                    // Get the # of friends line
+                    getline(mainFile, temp);
+                    int noFriends = atoi(temp.c_str());
+                    // Loop over the friends
+                    for (int i = 0; i < noFriends; i++) {
+                        getline(mainFile, temp);
+                        if (temp == friendName) friendExists = true;
+                    }
+                    mainFile.close();
+                }
+                if (friendExists)
+                    returnString += "YES";
+                else
+                    returnString += "NO";
                 break;
             }
 
