@@ -2,8 +2,8 @@
 
 #include <unordered_map>
 #include <string>
-#include <string.h>
-#include <unistd.h>
+#include <string.h> // strlen
+#include <unistd.h> // write
 
 // A mapping for convenience for possible queries defined by the API
 void initAPIMapping (std::unordered_map<std::string, int>& actions) {
