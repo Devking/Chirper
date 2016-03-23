@@ -14,229 +14,12 @@
 
 #include <string>
 #include <unordered_map>
-#include <iostream>      // debugging purposes only
 #include <fstream>       // opening/closing/writing/reading files
 #include <cstdio>        // remove
 #include <vector>
 
-#define MAXLINE  4096    // max text line length
-#define SA       struct sockaddr
-#define LISTENQ  1024    // 2nd argument to listen() -- size of listening queue
-#define PORT_NUM 9000
-
-#define CHKEML 1
-#define CHKUSR 2
-#define CHKPWD 3
-#define CHKFND 4
-#define CRTUSR 5
-#define DELUSR 6
-#define CRTCHP 7
-#define DELCHP 8
-#define ADDFND 9
-#define DELFND 10
-#define POPLAT 11
-#define MOVEUP 12
-#define MOVEDN 13
-
-// A mapping for convenience for possible queries defined by the API
-void initAPIMapping (std::unordered_map<std::string, int>& actions) {
-    actions["CHKEML"] = CHKEML;
-    actions["CHKUSR"] = CHKUSR;
-    actions["CHKPWD"] = CHKPWD;
-    actions["CHKFND"] = CHKFND;
-    actions["CRTUSR"] = CRTUSR;
-    actions["DELUSR"] = DELUSR;
-    actions["CRTCHP"] = CRTCHP;
-    actions["DELCHP"] = DELCHP;
-    actions["ADDFND"] = ADDFND;
-    actions["DELFND"] = DELFND;
-    actions["POPLAT"] = POPLAT;
-    actions["MOVEUP"] = MOVEUP;
-    actions["MOVEDN"] = MOVEDN;
-}
-
-void sendMessage (const std::string& returnString, char buff[MAXLINE], int connfd) {
-    const char* thing = returnString.c_str();
-    sprintf(buff, "%s", thing);
-    int len = strlen(buff);
-    if (len != write(connfd, buff, strlen(buff))) {
-        perror("write to connection failed");
-    }
-}
-
-bool checkUser (const std::string& username) {
-    std::ifstream userFile("manifest/user.txt");
-    if (!userFile) {
-        std::ofstream userFile("manifest/user.txt");
-        userFile.close();
-        return false;
-    } else {
-        std::string user;
-        while (getline(userFile, user, ','))
-            if (user == username) {
-                userFile.close();
-                return true;
-            }
-    }
-    userFile.close();
-    return false;
-}
-
-bool checkFriend (const std::string& fileName, const std::string& friendName) {
-    std::ifstream mainFile(fileName.c_str());
-    if (mainFile) {
-        std::string temp;
-        // Get the first two lines, they aren't needed
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        // Get the # of friends line
-        getline(mainFile, temp);
-        int noFriends = atoi(temp.c_str());
-        // Loop over the friends
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (temp == friendName) {
-                mainFile.close();
-                return true;
-            }
-        }
-        mainFile.close();
-    }
-    return false;
-}
-
-void deleteFriend (const std::string& fileName, const std::string& friendName) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    int noFriends = atoi(temp.c_str());
-    fileString += std::to_string(noFriends - 1) + "\n";
-    for (int i = 0; i < noFriends; i++) {
-        getline(mainFile, temp);
-        if (temp != friendName) fileString += temp + "\n";
-    }
-    while (getline(mainFile, temp))
-        fileString += temp + "\n";
-    mainFile.close();
-    std::ofstream mainFile2(fileName.c_str());
-    mainFile2 << fileString;
-}
-
-void checkValidFriends (const std::string& fileName) {
-    std::ifstream mainFile(fileName.c_str());
-    if (mainFile) {
-        std::string temp;
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        int noFriends = atoi(temp.c_str());
-        std::vector<std::string> friendsList;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            friendsList.push_back(temp);
-        }
-        mainFile.close();
-        // Once you have the friends list, check if each is valid
-        for (int i = 0; i < friendsList.size(); i++) {
-            // If friend does not exist, then delete friend
-            if (!checkUser(friendsList[i])) {
-                deleteFriend(fileName, friendsList[i]);
-            }
-        }
-    }
-}
-
-void deleteChirp (const std::string& fileName, int chirpid) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    for (int i = 0; i < noFriends; i++) {
-        getline(mainFile, temp);
-        fileString += temp + "\n";
-    }
-    getline(mainFile, temp);
-    int noChirps = atoi(temp.c_str());
-    fileString += std::to_string(noChirps - 1) + "\n";
-    for (int i = 0; i < noChirps; i++) {
-        getline(mainFile, temp);
-        if (i != chirpid) fileString += temp + "\n";
-    }
-    mainFile.close();
-    std::ofstream mainFile2(fileName.c_str());
-    mainFile2 << fileString;
-}
-
-void moveUserUp (const std::string& fileName, int userid) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    if (userid > 0 && userid < noFriends) {
-        std::string user;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (i == userid-1)
-                user = temp;
-            else if (i == userid)
-                fileString += temp + "\n" + user + "\n";
-            else
-                fileString += temp + "\n";
-        }
-        while (getline(mainFile, temp))
-            fileString += temp + "\n";
-        mainFile.close();
-        std::ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
-    }
-}
-
-void moveUserDown (const std::string& fileName, int userid) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    if (userid > -1 && userid < noFriends - 1) {
-        std::string user;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (i == userid)
-                user = temp;
-            else if (i == userid + 1)
-                fileString += temp + "\n" + user + "\n";
-            else
-                fileString += temp += "\n";
-        }
-         while (getline(mainFile, temp))
-            fileString += temp + "\n";
-        mainFile.close();
-        std::ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
-    }
-}
+#include "api_mapping.h"
+#include "queries.h"
 
 int main() {
     std::unordered_map<std::string, int> actions;
@@ -293,52 +76,23 @@ int main() {
         // Break up the client's request
         std::string query = readbuff;
 
-        // Break up requests based on specified API:
-        // ACTION FIELD\n
-        // OPTIONAL DATA
+        // Break up requests based on specified API
         int space = query.find(' ');
         int newline = query.find('\n');
         int fieldLength = newline - space - 1;
         std::string action = query.substr(0, space);
         std::string field = query.substr(space + 1, fieldLength);
 
-        // Process the query / work with files
-        // Be sure to check file existence for all files
-        std::string returnString = "";
-
-        // Determine which action to take
-        std::unordered_map<std::string, int>::iterator itr = actions.find(action);
-        int actionID = 0;
-        if (itr != actions.end()) {
-            actionID = itr->second;
-        }
+        // Determine which action to take using the query map
+        auto itr = actions.find(action);
+        int actionID = (itr != actions.end()) ? itr->second : 0;
 
         switch (actionID) {
-            // Query to check email
-            case CHKEML: {
-                std::ifstream emailFile("manifest/email.txt");
-
-                if (!emailFile) {
-                    std::ofstream emailFile("manifest/email.txt");
-                    returnString += "NO";
-                } else {
-                    std::string email;
-                    bool foundEmail = false;
-                    while (getline(emailFile, email, ',')) if (email == field) foundEmail = true;
-                    returnString += foundEmail ? "YES" : "NO";
-                }
-                emailFile.close();
-                sendMessage(returnString, buff, connfd);
-                break;
-            }
-            // Query to check user
-            case CHKUSR: {
-                returnString += checkUser(field) ? "YES" : "NO";
-                sendMessage(returnString, buff, connfd);
-                break;
-            }
+            case CHKEML: checkEmail(field, buff, connfd); break;
+            case CHKUSR: sendMessage(checkUser(field)?"YES":"NO", buff, connfd); break;
             // Check that the login is correct
             case CHKPWD: {
+                std::string returnString = "";
                 int secondnewline = query.find('\n', newline+1);
                 int passwordlength = secondnewline - newline - 1;
                 std::string password = query.substr(newline+1, passwordlength);
@@ -363,6 +117,7 @@ int main() {
             // Delete a user -- assume we really mean it when we call this
             case DELUSR: {
                 // Delete the file with the user
+                std::string returnString = "";
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
                 std::string email = "";
@@ -401,6 +156,7 @@ int main() {
             }
             // Create a user -- at this point, ensured that user does not exist
             case CRTUSR: {
+                std::string returnString = "";
                 int secondnewline = query.find('\n', newline+1);
                 int passwordlength = secondnewline - newline - 1;
                 std::string password = query.substr(newline+1, passwordlength);
@@ -431,6 +187,7 @@ int main() {
 
             // Create a chirp
             case CRTCHP: {
+                std::string returnString = "";
                 int secondnewline = query.find('\n', newline+1);
                 int chirplength = secondnewline - newline - 1;
                 std::string chirp = query.substr(newline+1, chirplength);
@@ -479,6 +236,7 @@ int main() {
 
             // Add friend - At this point, confirmed it's not a duplicate friend
             case ADDFND: {
+                std::string returnString = "";
                 int secondnewline = query.find('\n', newline+1);
                 int friendlength = secondnewline - newline - 1;
                 std::string friendName = query.substr(newline+1, friendlength);
@@ -518,6 +276,7 @@ int main() {
 
             // Check if friend exists in the friend's list already or not
             case CHKFND: {
+                std::string returnString = "";
                 int secondnewline = query.find('\n', newline+1);
                 int friendlength = secondnewline - newline - 1;
                 std::string friendName = query.substr(newline+1, friendlength);
@@ -640,7 +399,7 @@ int main() {
                 break;
             }
 
-            // The default case: if actionID is 0 (query doesn't exist)
+            // If query received doesn't exist, just ignore it
             default: break;
         }
     }

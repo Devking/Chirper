@@ -1,8 +1,8 @@
 # CS3254 Parallel and Distributed Systems
 # Code Written By: Wells Santo and Patrick Kingchatchaval
 
-# Web server runs on localhost:8000
-# Data server runs on localhost:9000
+# Python Web server runs on localhost:8000
+# C++ Data server runs on localhost:9000
 
 from flask import Flask, render_template, redirect, request, url_for, session
 import socket

@@ -1,5 +1,5 @@
 all:
-	@g++ -std=c++11 server.cpp -o server
+	@g++ -std=c++11 server.cpp api_mapping.cpp queries.cpp -o server
 	@echo "Files compiled successfully. 'server' executable created."
 
 clean:
@@ -7,6 +7,5 @@ clean:
 	@rm server
 	@echo "'server' executable successfully removed."
 
-run:
-	@g++ -std=c++11 server.cpp -o server
+run: all
 	@./server
