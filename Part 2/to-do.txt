@@ -30,7 +30,7 @@ potential queries:
 - check username                        CHKUSR  username                        2
 - check password                        CHKPWD  username\npassword              3
 - check friend                          CHKFND  username\nfriend
-- create user                           CRTUSR  username\npassword\nemail
+- create user                           CRTUSR  username\npassword\nemail       5
 - delete user                           DELUSR  username\nemail                 6
 - create chirp                          CRTCHP  username\nchirp
 - delete chirp                          DELCHP  username\nchirpid

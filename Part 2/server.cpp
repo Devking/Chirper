@@ -26,6 +26,7 @@
 #define CHKEML 1
 #define CHKUSR 2
 #define CHKPWD 3
+#define CRTUSR 5
 #define DELUSR 6
 
 // A mapping for convenience for possible queries defined by the API
@@ -33,6 +34,7 @@ void initAPIMapping (std::unordered_map<std::string, int>& actions) {
     actions["CHKEML"] = CHKEML;
     actions["CHKUSR"] = CHKUSR;
     actions["CHKPWD"] = CHKPWD;
+    actions["CRTUSR"] = CRTUSR;
     actions["DELUSR"] = DELUSR;
 }
 
@@ -70,13 +72,14 @@ int main() {
     }
 
     // 5. Block until someone connects.
+    fprintf(stderr, "Server awaiting connection...\n");
+    if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
+        perror("accept failed");
+        exit(4);
+    }
+    fprintf(stderr, "A client is connected!\n");
+        
     for ( ; ; ) {
-        fprintf(stderr, "Server awaiting connection...\n");
-        if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
-            perror("accept failed");
-            exit(4);
-        }
-        fprintf(stderr, "A client is connected!\n");
 
         ///////////////////////////////////////////////////////
         // At this point, we have a connection! Do our task! //
@@ -99,7 +102,7 @@ int main() {
         // OPTIONAL DATA
         int space = query.find(' ');
         int newline = query.find('\n');
-        int fieldLength = newline - space - 2;
+        int fieldLength = newline - space - 1;
         std::string action = query.substr(0, space);
         std::string field = query.substr(space + 1, fieldLength);
 
@@ -153,7 +156,7 @@ int main() {
                 //////////
                 // Right now, grabbing the password field (after the \n) is not working
                 //////////
-                
+
                 std::string password = query.substr(newline+1);
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
@@ -185,6 +188,18 @@ int main() {
                 // Delete the username from the username text file
                 break;
             }
+            // Create a user -- at this point, ensured that user does not exist
+            case CRTUSR: {
+                std::string password = query.substr(newline+1);
+                std::string email = "test@test.com";
+                std::string fileName = "users/" + field + ".txt";
+                std::ofstream mainFile(fileName.c_str());
+                // Now add password, email, and 0's to the file
+                break;
+            }
+
+            // ofstream mainFile(file, std::ios_base::app)
+
             // The default case: if actionID is 0 (query doesn't exist)
             default:
                 break;
@@ -199,6 +214,7 @@ int main() {
         }
 
         // 6. Close the connection with the current client and go back for another.
-        close(connfd);
+        // Never close the connection because we're terrible people
+        // close(connfd);
     }
 }
