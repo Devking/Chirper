@@ -285,6 +285,9 @@ int main() {
                         fileString += temp + "\n";
                     }
                     mainFile.close();
+                    std::ofstream mainFile2(fileName.c_str());
+                    mainFile2 << fileString;
+                    mainFile2.close();
                     returnString += "YES";
                 } else {
                     returnString += "NO";
@@ -321,6 +324,9 @@ int main() {
                         fileString += temp + "\n";
                     }
                     mainFile.close();
+                    std::ofstream mainFile2(fileName.c_str());
+                    mainFile2 << fileString;
+                    mainFile2.close();
                     returnString += "YES";
                 } else {
                     returnString += "NO";
@@ -334,7 +340,7 @@ int main() {
                 int friendlength = secondnewline - newline - 1;
                 std::string friendName = query.substr(newline+1, friendlength);
                 std::cout << "|" << friendName << "|" << std::endl;
-                
+
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
                 bool friendExists = false;
