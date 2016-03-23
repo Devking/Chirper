@@ -39,7 +39,9 @@ def login():
         # Check if login is successful
         s.sendall('CHKUSR ' + username + '\n')
         chkusr = s.recv(4096)
-        if chkusr == 'YES' and users[username]['password'] == request.form['password']:
+        s.sendall('CHKPWD ' + username + '\n' + request.form['password'] + '\n')
+        chkpwd = s.recv(4096)
+        if chkusr == 'YES' and chkpwd == 'YES':
             # Add to current session
             session['username'] = username
             # Persist the session across closed windows (on the same browser)
