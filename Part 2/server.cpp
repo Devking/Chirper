@@ -129,6 +129,7 @@ int main() {
                     while (getline(emailFile, email, ',')) if (email == field) foundEmail = true;
                     returnString += foundEmail ? "YES" : "NO";
                 }
+                emailFile.close();
                 break;
             }
             // Query to check user
@@ -144,6 +145,7 @@ int main() {
                     while (getline(userFile, user, ',')) if (user == field) foundUser = true;
                     returnString += foundUser ? "YES" : "NO";
                 }
+                userFile.close();
                 break;
             }
             // Check that the login is correct
@@ -167,18 +169,47 @@ int main() {
                     std::cout << "Did not find that user." << std::endl;
                     returnString += "NO";
                 }
+                mainFile.close();
                 break;
             }
             // Delete a user -- assume we really mean it when we call this
             case DELUSR: {
                 // Delete the file with the user
                 std::string fileName = "users/" + field + ".txt";
-                const char* fileNameChar = fileName.c_str();
-                if (remove(fileNameChar) != 0) {
-                    std::cout << "Error deleting file!" << std::endl;
+                std::ifstream mainFile(fileName.c_str());
+                std::string email = "";
+                if (mainFile) {
+                    getline(mainFile, email);
+                    getline(mainFile, email);
                 }
+                mainFile.close();
+                if (remove(fileName.c_str()) != 0)
+                    std::cout << "Error deleting file!" << std::endl;
                 // Delete the email from the email text file
+                std::ifstream mailFile("email.txt");
+                std::string mailString = "";
+                if (mailFile) {
+                    std::string temp;
+                    while (getline(mailFile, temp, ','))
+                        if (temp != email) mailString += temp + ",";
+                    std::cout << "|" << email << "|" << std::endl;
+                }
+                mailFile.close();
+                std::ofstream mailFile2("email.txt");
+                mailFile2 << mailString;
+                mailFile2.close();
                 // Delete the username from the username text file
+                std::ifstream nameFile("user.txt");
+                std::string nameString = "";
+                if (nameFile) {
+                    std::string temp;
+                    while (getline(nameFile, temp, ','))
+                        if (temp != field) nameString += temp + ",";
+                    std::cout << field << std::endl;
+                }
+                nameFile.close();
+                std::ofstream nameFile2("user.txt");
+                nameFile2 << nameString;
                 break;
             }
             // Create a user -- at this point, ensured that user does not exist
@@ -200,9 +231,11 @@ int main() {
 
                 std::ofstream mailFile("email.txt", std::ios_base::app);
                 mailFile << email << ",";
+                mailFile.close();
 
                 std::ofstream userFile("user.txt", std::ios_base::app);
                 userFile << field << ",";
+                userFile.close();
 
                 returnString += "YES";
                 break;
