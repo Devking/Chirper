@@ -7,10 +7,7 @@
 from flask import Flask, render_template, redirect, request, url_for, session
 import socket
 
-# Import in-memory user information, aka some default dummy created users and dummy messages
-# We will remove this from our
-from manifest import users, emails
-
+# Create the socket connection with our data server
 host = 'localhost'
 port = 9000
 s = socket.socket()
@@ -97,28 +94,35 @@ def home():
     if 'username' not in session:
         return redirect(url_for('splash'))
 
+    # Retrieve email and friend list
+    s.sendall('POPLAT ' + session['username'] + '\n')
+    retrievedemail = s.recv(4096)
+    retrievedfriends = []
+    for i in xrange(s.recv(4096)):
+        retrievedfriends.append(s.recv(4096))
+
     # Retrieve chirps of this user
     allchirps = [{
                       'author': session['username'],
-                      'chirps': users[session['username']]['chirps']
+                      'chirps': []
                  }]
+    for j in xrange(s.recv(4096)):
+        allchirps[0][chirps].append(s.recv(4096))
 
     # Retrieve chirps of user's friends
-    for friend in users[session['username']]['friends']:
-        # Check first if the user exists; if not, remove the user from the friend's list
-        if friend in users.keys():
-            allchirps.append({
-                                  'author': friend,
-                                  'chirps': users[friend]['chirps']
-                             })
-        else:
-            users[session['username']]['friends'].remove(friend)
+    for k in xrange(len(retrievedfriends)):
+        allchirps.append({
+                              'author': retrievedfriends[k],
+                              'chirps': []
+                         })
+        for l in xrange(s.recv(4096)):
+            allchirps[k + 1][chirps].append(s.recv(4096))
 
     # Otherwise, generate the home page
     return render_template('home.html',
                             username       = session['username'],
-                            email          = users[session['username']]['email'],
-                            friends        = users[session['username']]['friends'],
+                            email          = retrievedemail,
+                            friends        = retrievedfriends,
                             chirps         = allchirps,
                             emptychirp     = request.args.get('emptychirp'),
                             emptyfriend    = request.args.get('emptyfriend'),
@@ -130,6 +134,7 @@ def home():
 @app.route('/postchirp', methods=['POST', 'GET'])
 def postchirp():
     if request.method == 'POST':
+        # Check for empty chirp before posting
         if request.form['chirp'].strip() != '':
             s.sendall('CRTCHP ' + session['username'] + '\n' + request.form['chirp'] + '\n')
             s.recv(4096)
@@ -143,26 +148,31 @@ def deletechirp(chirp_id):
     # Make sure that if the user types in the URL, the chirp_id is a valid integer
     if 'username' in session and chirp_id.isdigit():
         chirp_id = int(chirp_id)
-        if chirp_id < len(users[session['username']]['chirps']):
-            users[session['username']]['chirps'].pop(chirp_id)
+        s.sendall('DELCHP ' + session['username'] + '\n' + chirp_id + '\n')
+        s.recv(4096)
     return redirect(url_for('home'))
 
 # Adding a friend
 @app.route('/addfriend', methods=['POST', 'GET'])
 def addfriend():
     if request.method == 'POST':
+        # Check for empty friend name
         if request.form['friend'] == '':
             return redirect(url_for('home', emptyfriend = True))
+        # Check for friend name being the user themselves
         if request.form['friend'] == session['username']:
             return redirect(url_for('home', addyourself = True))
+        # Check for friend name being a valid user
         s.sendall('CHKUSR ' + request.form['friend'] + '\n')
         chkusr = s.recv(4096)
         if chkusr == 'NO':
             return redirect(url_for('home', friendnotfound = True))
+        # Check for friend already added
         s.sendall('CHKFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
         chkfnd = s.recv(4096)
         if chkfnd == 'YES':
             return redirect(url_for('home', alreadyfriends = True))
+        # Add friend
         s.sendall('ADDFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
         s.recv(4096)
     return redirect(url_for('home'))
@@ -174,7 +184,8 @@ def unfollow(user):
         s.sendall('CHKFND ' + session['username'] + '\n' + user + '\n')
         chkfnd = s.recv(4096)
         if chkfnd == 'YES':
-            users[session['username']]['friends'].remove(user)
+            s.sendall('DELFND ' + session['username'] + '\n' + user + '\n')
+            s.recv(4096)
     return redirect(url_for('home'))
 
 # Move a friend up the list
@@ -182,9 +193,8 @@ def unfollow(user):
 def moveup(user_id):
     if 'username' in session and user_id.isdigit():
         user_id = int(user_id)
-        if user_id > 0 and user_id < len(users[session['username']]['friends']):
-            users[session['username']]['friends'][user_id], users[session['username']]['friends'][user_id - 1] = \
-                users[session['username']]['friends'][user_id - 1], users[session['username']]['friends'][user_id]
+        s.sendall('MOVEUP ' + session['username'] + '\n' + user_id + '\n')
+        s.recv(4096)
     return redirect(url_for('home'))
 
 # Move a friend down the list
@@ -192,9 +202,8 @@ def moveup(user_id):
 def movedown(user_id):
     if 'username' in session and user_id.isdigit():
         user_id = int(user_id)
-        if user_id > -1 and user_id < len(users[session['username']]['friends']) - 1:
-            users[session['username']]['friends'][user_id], users[session['username']]['friends'][user_id + 1] = \
-                users[session['username']]['friends'][user_id + 1], users[session['username']]['friends'][user_id]
+        s.sendall('MOVEDN ' + session['username'] + '\n' + user_id + '\n')
+        s.recv(4096)
     return redirect(url_for('home'))
 
 # Logout
