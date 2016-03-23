@@ -37,7 +37,9 @@ def login():
         username = request.form['username']
 
         # Check if login is successful
-        if username in users.keys() and users[username]['password'] == request.form['password']:
+        s.sendall('CHKUSR ' + username + '\n')
+        chkusr = s.recv(4096)
+        if chkusr == 'YES' and users[username]['password'] == request.form['password']:
             # Add to current session
             session['username'] = username
             # Persist the session across closed windows (on the same browser)
@@ -74,9 +76,11 @@ def checkreg():
         if username == '' or request.form['password'] == '' or enteredemail == '':
             return render_template('register.html', emptyreg = True)
         # Check for duplicate user/email
+        s.sendall('CHKUSR ' + username + '\n')
+        chkusr = s.recv(4096)
         s.sendall('CHKEML ' + enteredemail + '\n')
         chkeml = s.recv(4096)
-        if username in users.keys() or chkeml == 'YES':
+        if chkusr == 'YES' or chkeml == 'YES':
             return render_template('register.html', regfail = True)       
         users[username] = {
             'password': request.form['password'],
@@ -154,7 +158,9 @@ def addfriend():
             return redirect(url_for('home', emptyfriend = True))
         if request.form['friend'] == session['username']:
             return redirect(url_for('home', addyourself = True))
-        if request.form['friend'] not in users.keys():
+        s.sendall('CHKUSR ' + username + '\n')
+        chkusr = s.recv(4096)
+        if chkusr == 'NO':
             return redirect(url_for('home', friendnotfound = True))
         if request.form['friend'] in users[session['username']]['friends']:
             return redirect(url_for('home', alreadyfriends = True))
