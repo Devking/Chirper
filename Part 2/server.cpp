@@ -17,6 +17,7 @@
 #include <iostream>      // debugging purposes only
 #include <fstream>       // opening/closing/writing/reading files
 #include <cstdio>        // remove
+#include <vector>
 
 #define MAXLINE  4096    // max text line length
 #define SA       struct sockaddr
@@ -30,7 +31,10 @@
 #define CRTUSR 5
 #define DELUSR 6
 #define CRTCHP 7
-#define ADDFND 8
+#define DELCHP 8
+#define ADDFND 9
+#define DELFND 10
+#define POPLAT 11
 
 // A mapping for convenience for possible queries defined by the API
 void initAPIMapping (std::unordered_map<std::string, int>& actions) {
@@ -41,7 +45,106 @@ void initAPIMapping (std::unordered_map<std::string, int>& actions) {
     actions["CRTUSR"] = CRTUSR;
     actions["DELUSR"] = DELUSR;
     actions["CRTCHP"] = CRTCHP;
+    actions["DELCHP"] = DELCHP;
     actions["ADDFND"] = ADDFND;
+    actions["DELFND"] = DELFND;
+    actions["POPLAT"] = POPLAT;
+}
+
+void sendMessage (const std::string& returnString, char buff[MAXLINE], int connfd) {
+    const char* thing = returnString.c_str();
+    sprintf(buff, "%s", thing);
+    int len = strlen(buff);
+    if (len != write(connfd, buff, strlen(buff))) {
+        perror("write to connection failed");
+    }
+}
+
+bool checkUser (const std::string& username) {
+    std::ifstream userFile("user.txt");
+    if (!userFile) {
+        std::ofstream userFile("user.txt");
+        userFile.close();
+        return false;
+    } else {
+        std::string user;
+        while (getline(userFile, user, ',')) 
+            if (user == username) {
+                userFile.close();
+                return true;
+            }
+    }
+    userFile.close();
+    return false;
+}
+
+bool checkFriend (const std::string& fileName, const std::string& friendName) {
+    std::ifstream mainFile(fileName.c_str());
+    if (mainFile) {
+        std::string temp;
+        // Get the first two lines, they aren't needed
+        getline(mainFile, temp);
+        getline(mainFile, temp);
+        // Get the # of friends line
+        getline(mainFile, temp);
+        int noFriends = atoi(temp.c_str());
+        // Loop over the friends
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            if (temp == friendName) {
+                mainFile.close();
+                return true;
+            }
+        }
+        mainFile.close();
+    }
+    return false;
+}
+
+void deleteFriend (const std::string& fileName, const std::string& friendName) {
+    std::ifstream mainFile(fileName.c_str());
+    std::string fileString = "";
+    std::string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    int noFriends = atoi(temp.c_str());
+    for (int i = 0; i < noFriends; i++) {
+        getline(mainFile, temp);
+        if (temp != friendName) fileString += temp + "\n"; 
+    }
+    while (getline(mainFile, temp))
+        fileString += temp + "\n";
+    mainFile.close();
+    std::ofstream mainFile2(fileName.c_str());
+    mainFile2 << fileString;
+}
+
+void checkValidFriends (const std::string& fileName) {
+    std::ifstream mainFile(fileName.c_str());
+    if (mainFile) {
+        std::string temp;
+        getline(mainFile, temp);
+        getline(mainFile, temp);
+        getline(mainFile, temp);
+        int noFriends = atoi(temp.c_str());
+        std::vector<std::string> friendsList;
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            friendsList.push_back(temp);
+        }
+        mainFile.close();
+        // Once you have the friends list, check if each is valid
+        for (int i = 0; i < friendsList.size(); i++) {
+            // If friend does not exist, then delete friend
+            if (!checkUser(friendsList[i])) {
+                deleteFriend(fileName, friendsList[i]);
+            }
+        }
+    }
 }
 
 int main() {
@@ -136,22 +239,13 @@ int main() {
                     returnString += foundEmail ? "YES" : "NO";
                 }
                 emailFile.close();
+                sendMessage(returnString, buff, connfd);
                 break;
             }
             // Query to check user
             case CHKUSR: {
-                std::ifstream userFile("user.txt");
-
-                if (!userFile) {
-                    std::ofstream userFile("user.txt");
-                    returnString += "NO";
-                } else {
-                    std::string user;
-                    bool foundUser = false;
-                    while (getline(userFile, user, ',')) if (user == field) foundUser = true;
-                    returnString += foundUser ? "YES" : "NO";
-                }
-                userFile.close();
+                returnString += checkUser(field) ? "YES" : "NO";
+                sendMessage(returnString, buff, connfd);
                 break;
             }
             // Check that the login is correct
@@ -176,6 +270,7 @@ int main() {
                     returnString += "NO";
                 }
                 mainFile.close();
+                sendMessage(returnString, buff, connfd);
                 break;
             }
             // Delete a user -- assume we really mean it when we call this
@@ -216,6 +311,7 @@ int main() {
                 nameFile.close();
                 std::ofstream nameFile2("user.txt");
                 nameFile2 << nameString;
+                sendMessage(returnString, buff, connfd);
                 break;
             }
             // Create a user -- at this point, ensured that user does not exist
@@ -244,6 +340,7 @@ int main() {
                 userFile.close();
 
                 returnString += "YES";
+                sendMessage(returnString, buff, connfd);
                 break;
             }
 
@@ -292,6 +389,7 @@ int main() {
                 } else {
                     returnString += "NO";
                 }
+                sendMessage(returnString, buff, connfd);
                 break;
             }
 
@@ -331,6 +429,7 @@ int main() {
                 } else {
                     returnString += "NO";
                 }
+                sendMessage(returnString, buff, connfd);
                 break;
             }
 
@@ -343,40 +442,86 @@ int main() {
 
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
-                bool friendExists = false;
-                if (mainFile) {
-                    std::string temp;
-                    // Get the first two lines, they aren't needed
-                    getline(mainFile, temp);
-                    getline(mainFile, temp);
-                    // Get the # of friends line
-                    getline(mainFile, temp);
-                    int noFriends = atoi(temp.c_str());
-                    // Loop over the friends
-                    for (int i = 0; i < noFriends; i++) {
-                        getline(mainFile, temp);
-                        if (temp == friendName) friendExists = true;
-                    }
-                    mainFile.close();
-                }
-                if (friendExists)
+                if (checkFriend(fileName, friendName))
                     returnString += "YES";
                 else
                     returnString += "NO";
+                sendMessage(returnString, buff, connfd);
+                break;
+            }
+
+            // Populate the main page for the user
+            case POPLAT: {                
+                std::string fileName = "users/" + field + ".txt";
+                // This will first make sure that the friend's list is valid
+                checkValidFriends(fileName);
+                std::cout << "Finished checking valid friends" << std::endl;
+                // Assumes file exist, loop through and send relevant data
+                std::ifstream mainFile(fileName.c_str());
+                std::string temp;
+                // Send the second line of the file (email)
+                getline(mainFile, temp);
+                getline(mainFile, temp);
+                sendMessage(temp, buff, connfd);
+                std::cout << temp << std::endl;
+                // Get the number of friends
+                getline(mainFile, temp);
+                int noFriends = atoi(temp.c_str());
+                sendMessage(temp, buff, connfd);
+                std::cout << temp << std::endl;
+                // Keep track of list of friends
+                std::vector<std::string> friendsList;
+                for (int i = 0; i < noFriends; i++) {
+                    getline(mainFile, temp);
+                    friendsList.push_back(temp);
+                    sendMessage(temp, buff, connfd);
+                    std::cout << temp << std::endl;
+                }
+                // Send everything else
+                while (getline(mainFile, temp)) {
+                    sendMessage(temp, buff, connfd);
+                    std::cout << temp << std::endl;
+                }
+                mainFile.close();
+                // Go through the friends list and send the chirps of each friend
+                for (int i = 0; i < friendsList.size(); i++) {
+                    std::string friendFileName = "users/" + friendsList[i] + ".txt";
+                    std::ifstream friendFile(friendFileName.c_str());
+                    getline(mainFile, temp);
+                    getline(mainFile, temp);
+                    getline(mainFile, temp);
+                    int noFriends = atoi(temp.c_str());
+                    for (int i = 0; i < noFriends; i++)
+                        getline(mainFile, temp);
+                    // Get number of chirps
+                    getline(mainFile, temp);
+                    sendMessage(temp, buff, connfd);
+                    std::cout << temp << std::endl;
+                    int noChirps = atoi(temp.c_str());
+                    // Send this friend's chirps
+                    for (int i = 0; i < noChirps; i++) {
+                        getline(mainFile, temp);
+                        sendMessage(temp, buff, connfd);
+                        std::cout << temp << std::endl;
+                    }
+                    friendFile.close();
+                }
+                break;
+            }
+
+            case DELFND: {
+                std::string fileName = "users/" + field + ".txt";
+                int secondnewline = query.find('\n', newline+1);
+                int friendlength = secondnewline - newline - 1;
+                std::string friendName = query.substr(newline+1, friendlength);
+                deleteFriend(fileName, friendName);
+                std::string temp = "\n";
+                sendMessage(temp, buff, connfd);
                 break;
             }
 
             // The default case: if actionID is 0 (query doesn't exist)
-            default:
-                break;
-        }
-
-        // Send data back to the client
-        const char* thing = returnString.c_str();
-        sprintf(buff, "%s", thing);
-        int len = strlen(buff);
-        if (len != write(connfd, buff, strlen(buff))) {
-            perror("write to connection failed");
+            default: break;
         }
     }
 

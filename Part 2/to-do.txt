@@ -29,14 +29,14 @@ potential queries:
 - check email                           CHKEML  email                           1 - done
 - check username                        CHKUSR  username                        2 - done
 - check password                        CHKPWD  username\npassword              3 - done
-- check friend                          CHKFND  username\nfriend                4 - 
+- check friend                          CHKFND  username\nfriend                4 - done
 - create user                           CRTUSR  username\npassword\nemail       5 - done
 - delete user                           DELUSR  username                        6 - done
-- create chirp                          CRTCHP  username\nchirp                 7 -
-- delete chirp                          DELCHP  username\nchirpid
-- add friend                            ADDFND  username\nfriend                8 -
-- delete friend                         DELFND  username\nfriend
-- populate                              POPLAT  username
+- create chirp                          CRTCHP  username\nchirp                 7 - done
+- delete chirp                          DELCHP  username\nchirpid               8 ------
+- add friend                            ADDFND  username\nfriend                9 - done
+- delete friend                         DELFND  username\nfriend                10 -
+- populate                              POPLAT  username                        11 - 
 
 later:
 - reorder friends                       MOVEUP  username\nfriendid
