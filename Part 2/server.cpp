@@ -178,6 +178,66 @@ void deleteChirp (const std::string& fileName, int chirpid) {
     mainFile2 << fileString;
 }
 
+void moveUserUp (const std::string& fileName, int userid) {
+    std::ifstream mainFile(fileName.c_str());
+    std::string fileString = "";
+    std::string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    int noFriends = atoi(temp.c_str());
+    if (userid > 0 && userid < noFriends) {
+        std::string user;
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            if (i == userid-1)
+                user = temp;
+            else if (i == userid)
+                fileString += temp + "\n" + user + "\n";
+            else
+                fileString += temp + "\n";
+        }
+        while (getline(mainFile, temp))
+            fileString += temp + "\n";
+        mainFile.close();
+        std::ofstream mainFile2(fileName.c_str());
+        mainFile2 << fileString;
+    }
+}
+
+void moveUserDown (const std::string& fileName, int userid) {
+    std::ifstream mainFile(fileName.c_str());
+    std::string fileString = "";
+    std::string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    int noFriends = atoi(temp.c_str());
+    if (userid > -1 && userid < noFriends - 1) {
+        std::string user;
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            if (i == userid)
+                user = temp;
+            else if (i == userid + 1)
+                fileString += temp + "\n" + user + "\n";
+            else
+                fileString += temp += "\n";
+        }
+         while (getline(mainFile, temp))
+            fileString += temp + "\n";
+        mainFile.close();
+        std::ofstream mainFile2(fileName.c_str());
+        mainFile2 << fileString;   
+    }
+}
+
 int main() {
     std::unordered_map<std::string, int> actions;
     initAPIMapping(actions);
@@ -560,6 +620,10 @@ int main() {
 
             case MOVEUP: {
                 std::string fileName = "users/" + field + ".txt";
+                int secondnewline = query.find('\n', newline+1);
+                int valuelength = secondnewline - newline - 1;
+                int userid = atoi(query.substr(newline+1, valuelength).c_str());
+                moveUserUp(fileName, userid);
                 std::string temp = "YES";
                 sendMessage(temp, buff, connfd);
                 break;
@@ -567,6 +631,10 @@ int main() {
 
             case MOVEDN: {
                 std::string fileName = "users/" + field + ".txt";
+                int secondnewline = query.find('\n', newline+1);
+                int valuelength = secondnewline - newline - 1;
+                int userid = atoi(query.substr(newline+1, valuelength).c_str());
+                moveUserDown(fileName, userid);
                 std::string temp = "YES";
                 sendMessage(temp, buff, connfd);
                 break;
