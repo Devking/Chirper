@@ -81,14 +81,10 @@ def checkreg():
         s.sendall('CHKEML ' + enteredemail + '\n')
         chkeml = s.recv(4096)
         if chkusr == 'YES' or chkeml == 'YES':
-            return render_template('register.html', regfail = True)       
-        users[username] = {
-            'password': request.form['password'],
-            'email': enteredemail,
-            'chirps': [],
-            'friends': []
-        }
-        emails.add(enteredemail)
+            return render_template('register.html', regfail = True)
+        s.sendall('CRTUSR ' + username + '\n' + request.form['password'] + '\n'
+                  + enteredemail + '\n')
+        s.recv(4096)
         return render_template('regsuccess.html')
 
     # If someone landed here not on a POST request, send them back to register page
