@@ -35,6 +35,8 @@
 #define ADDFND 9
 #define DELFND 10
 #define POPLAT 11
+#define MOVEUP 12
+#define MOVEDN 13
 
 // A mapping for convenience for possible queries defined by the API
 void initAPIMapping (std::unordered_map<std::string, int>& actions) {
@@ -49,6 +51,8 @@ void initAPIMapping (std::unordered_map<std::string, int>& actions) {
     actions["ADDFND"] = ADDFND;
     actions["DELFND"] = DELFND;
     actions["POPLAT"] = POPLAT;
+    actions["MOVEUP"] = MOVEUP;
+    actions["MOVEDN"] = MOVEDN;
 }
 
 void sendMessage (const std::string& returnString, char buff[MAXLINE], int connfd) {
@@ -156,10 +160,12 @@ void deleteChirp (const std::string& fileName, int chirpid) {
     getline(mainFile, temp);
     fileString += temp + "\n";
     getline(mainFile, temp);
-    int noFriends = atoi(temp.c_str());
     fileString += temp + "\n";
-    for (int i = 0; i < noFriends; i++)
+    int noFriends = atoi(temp.c_str());
+    for (int i = 0; i < noFriends; i++) {
         getline(mainFile, temp);
+        fileString += temp;
+    }
     getline(mainFile, temp);
     int noChirps = atoi(temp.c_str());
     fileString += std::to_string(noChirps - 1) + "\n";
@@ -236,8 +242,6 @@ int main() {
         std::string action = query.substr(0, space);
         std::string field = query.substr(space + 1, fieldLength);
 
-        std::cout << "|" << action << "|" << "|" <<  field << "|" << std::endl;
-
         // Process the query / work with files
         // Be sure to check file existence for all files
         std::string returnString = "";
@@ -283,7 +287,6 @@ int main() {
                 if (mainFile) {
                     std::string filePassword;
                     getline(mainFile, filePassword);
-                    std::cout << "|" << password << "|" << std::endl;
                     // Send a response saying whether login was successful or not
                     if (filePassword == password) {
                         returnString += "YES";
@@ -309,7 +312,7 @@ int main() {
                 }
                 mainFile.close();
                 if (remove(fileName.c_str()) != 0)
-                    std::cout << "Error deleting file!" << std::endl;
+                    perror("deleting user file failed");
                 // Delete the email from the email text file
                 std::ifstream mailFile("email.txt");
                 std::string mailString = "";
@@ -317,7 +320,6 @@ int main() {
                     std::string temp;
                     while (getline(mailFile, temp, ','))
                         if (temp != email) mailString += temp + ",";
-                    std::cout << "|" << email << "|" << std::endl;
                 }
                 mailFile.close();
                 std::ofstream mailFile2("email.txt");
@@ -330,7 +332,6 @@ int main() {
                     std::string temp;
                     while (getline(nameFile, temp, ','))
                         if (temp != field) nameString += temp + ",";
-                    std::cout << field << std::endl;
                 }
                 nameFile.close();
                 std::ofstream nameFile2("user.txt");
@@ -373,7 +374,6 @@ int main() {
                 int secondnewline = query.find('\n', newline+1);
                 int chirplength = secondnewline - newline - 1;
                 std::string chirp = query.substr(newline+1, chirplength);
-                std::cout << "|" << chirp << "|" << std::endl;
 
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
@@ -422,7 +422,6 @@ int main() {
                 int secondnewline = query.find('\n', newline+1);
                 int friendlength = secondnewline - newline - 1;
                 std::string friendName = query.substr(newline+1, friendlength);
-                std::cout << "|" << friendName << "|" << std::endl;
 
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
@@ -462,7 +461,6 @@ int main() {
                 int secondnewline = query.find('\n', newline+1);
                 int friendlength = secondnewline - newline - 1;
                 std::string friendName = query.substr(newline+1, friendlength);
-                std::cout << "|" << friendName << "|" << std::endl;
 
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
@@ -551,13 +549,24 @@ int main() {
 
             case DELCHP: {
                 std::string fileName = "users/" + field + ".txt";
-                std::cout << fileName << std::endl;
                 int secondnewline = query.find('\n', newline+1);
                 int valuelength = secondnewline - newline - 1;
-                std::cout << valuelength << std::endl;
                 int chirpid = atoi(query.substr(newline+1, valuelength).c_str());
-                std::cout << chirpid << std::endl;
                 deleteChirp(fileName, chirpid);
+                std::string temp = "YES";
+                sendMessage(temp, buff, connfd);
+                break;
+            }
+
+            case MOVEUP: {
+                std::string fileName = "users/" + field + ".txt";
+                std::string temp = "YES";
+                sendMessage(temp, buff, connfd);
+                break;
+            }
+
+            case MOVEDN: {
+                std::string fileName = "users/" + field + ".txt";
                 std::string temp = "YES";
                 sendMessage(temp, buff, connfd);
                 break;

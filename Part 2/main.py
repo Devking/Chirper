@@ -155,8 +155,10 @@ def postchirp():
 def deletechirp(chirp_id):
     # Make sure that if the user types in the URL, the chirp_id is a valid integer
     if 'username' in session and chirp_id.isdigit():
-        chirp_id = int(chirp_id)
+        print 'in function'
+        print 'delete chirp'
         s.sendall('DELCHP ' + session['username'] + '\n' + chirp_id + '\n')
+        print 'send delete request'
         s.recv(4096)
     return redirect(url_for('home'))
 
@@ -200,7 +202,6 @@ def unfollow(user):
 @app.route('/moveup/<user_id>')
 def moveup(user_id):
     if 'username' in session and user_id.isdigit():
-        user_id = int(user_id)
         s.sendall('MOVEUP ' + session['username'] + '\n' + user_id + '\n')
         s.recv(4096)
     return redirect(url_for('home'))
@@ -209,7 +210,6 @@ def moveup(user_id):
 @app.route('/movedown/<user_id>')
 def movedown(user_id):
     if 'username' in session and user_id.isdigit():
-        user_id = int(user_id)
         s.sendall('MOVEDN ' + session['username'] + '\n' + user_id + '\n')
         s.recv(4096)
     return redirect(url_for('home'))
