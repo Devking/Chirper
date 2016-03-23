@@ -148,12 +148,9 @@ int main() {
             }
             // Check that the login is correct
             case CHKPWD: {
-
-                //////////
-                // Right now, grabbing the password field (after the \n) is not working
-                //////////
-
-                std::string password = query.substr(newline+1);
+                int secondnewline = query.find('\n', newline+1);
+                int passwordlength = secondnewline - newline - 1;
+                std::string password = query.substr(newline+1, passwordlength);
                 std::string fileName = "users/" + field + ".txt";
                 std::ifstream mainFile(fileName.c_str());
                 if (mainFile) {
@@ -186,15 +183,30 @@ int main() {
             }
             // Create a user -- at this point, ensured that user does not exist
             case CRTUSR: {
-                std::string password = query.substr(newline+1);
-                std::string email = "test@test.com";
+                int secondnewline = query.find('\n', newline+1);
+                int passwordlength = secondnewline - newline - 1;
+                std::string password = query.substr(newline+1, passwordlength);
+
+                int thirdnewline = query.find('\n', secondnewline+1);
+                int emaillength = thirdnewline - secondnewline - 1;
+                std::string email = query.substr(secondnewline+1, emaillength);
+
                 std::string fileName = "users/" + field + ".txt";
                 std::ofstream mainFile(fileName.c_str());
-                // Now add password, email, and 0's to the file
+
+                mainFile << password << "\n";
+                mainFile << email << "\n";
+                mainFile << "0\n0\n";
+
+                std::ofstream mailFile("email.txt", std::ios_base::app);
+                mailFile << email << ",";
+
+                std::ofstream userFile("user.txt", std::ios_base::app);
+                userFile << field << ",";
+
+                returnString += "YES";
                 break;
             }
-
-            // ofstream mainFile(file, std::ios_base::app)
 
             // The default case: if actionID is 0 (query doesn't exist)
             default:
