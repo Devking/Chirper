@@ -131,7 +131,8 @@ def home():
 def postchirp():
     if request.method == 'POST':
         if request.form['chirp'].strip() != '':
-            users[session['username']]['chirps'].insert(0, request.form['chirp'])
+            s.sendall('CRTCHP ' + session['username'] + '\n' + request.form['chirp'] + '\n')
+            s.recv(4096)
         else:
             return redirect(url_for('home', emptychirp = True))
     return redirect(url_for('home'))
@@ -154,20 +155,25 @@ def addfriend():
             return redirect(url_for('home', emptyfriend = True))
         if request.form['friend'] == session['username']:
             return redirect(url_for('home', addyourself = True))
-        s.sendall('CHKUSR ' + username + '\n')
+        s.sendall('CHKUSR ' + session['username'] + '\n')
         chkusr = s.recv(4096)
         if chkusr == 'NO':
             return redirect(url_for('home', friendnotfound = True))
-        if request.form['friend'] in users[session['username']]['friends']:
+        s.sendall('CHKFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
+        chkfnd = s.recv(4096)
+        if chkfnd = 'YES':
             return redirect(url_for('home', alreadyfriends = True))
-        users[session['username']]['friends'].append(request.form['friend'])
+        s.sendall('ADDFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
+        s.recv(4096)
     return redirect(url_for('home'))
 
 # Unfollow a friend
 @app.route('/unfollow/<user>')
 def unfollow(user):
     if 'username' in session:
-        if user in users[session['username']]['friends']:
+        s.sendall('CHKFND ' + session['username'] + '\n' + user + '\n')
+        chkfnd = s.recv(4096)
+        if chkfnd == 'YES':
             users[session['username']]['friends'].remove(user)
     return redirect(url_for('home'))
 
