@@ -71,20 +71,16 @@ int main() {
         exit(3);
     }
 
-    // 5. Block until someone connects.
+    // 5. Block until the Python server connects.
     fprintf(stderr, "Server awaiting connection...\n");
     if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
         perror("accept failed");
         exit(4);
     }
-    fprintf(stderr, "A client is connected!\n");
-        
+    fprintf(stderr, "The Python client is connected!\n");
+
+    // 
     for ( ; ; ) {
-
-        ///////////////////////////////////////////////////////
-        // At this point, we have a connection! Do our task! //
-        ///////////////////////////////////////////////////////
-
         // Get the client's request and store it in readbuff
         char readbuff[MAXLINE];
 
@@ -207,14 +203,13 @@ int main() {
 
         // Send data back to the client
         const char* thing = returnString.c_str();
-        sprintf(buff, "%s\n", thing);
+        sprintf(buff, "%s", thing);
         int len = strlen(buff);
         if (len != write(connfd, buff, strlen(buff))) {
             perror("write to connection failed");
         }
-
-        // 6. Close the connection with the current client and go back for another.
-        // Never close the connection because we're terrible people
-        // close(connfd);
     }
+
+    // May never get to this point, since we will always wait for more messages from the Python client
+    close(connfd);
 }
