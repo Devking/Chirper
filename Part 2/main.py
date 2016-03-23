@@ -202,8 +202,7 @@ def logout():
 def deleteaccount():
     deletesuccess = False
     if 'username' in session:
-        emails.remove(users[session['username']]['email'])
-        del users[session['username']]
+        s.sendall('DELUSR ' + session['username'] + '\n')
         session.clear()
         deletesuccess = True
     return redirect(url_for('splash', deletedaccount = deletesuccess))
