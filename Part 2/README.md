@@ -6,17 +6,17 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 
 1. [The Application Itself](# 1. The Application Itself)<br />
 	1.1. [Dependencies](## 1.1 Dependencies)<br />
-	1.2. Running the Application<br />
-	&nbsp;&nbsp;&nbsp;1.2.1. Running the Application Responsively<br />
-	1.3. Dummy Example Data<br />
-2. Under the Hood<br />
-	2.1 Data Files<br />
-	&nbsp;&nbsp;&nbsp;2.1.1. User Data File<br />
-	2.2 Queries<br />
-	2.3 Query API<br />
-	&nbsp;&nbsp;&nbsp;2.3.1 Query Descriptions<br />
+	1.2. [Running the Application](## 1.2. Running the Application)<br />
+	&nbsp;&nbsp;&nbsp;1.2.1. [Running the Application Responsively](### 1.2.1. Running the Application Responsively)<br />
+	1.3. [Dummy Example Data](## 1.3. Dummy Example Data)<br />
+2. [Under the Hood](# Under the Hood)<br />
+	2.1 [Data Files](## Data Files)<br />
+	&nbsp;&nbsp;&nbsp;2.1.1. [User Data File](### User Data File)<br />
+	2.2 [Queries](## Queries)<br />
+	2.3 [Query API](## Query API)<br />
+	&nbsp;&nbsp;&nbsp;2.3.1 [Query Descriptions](### Query Descriptions)<br />
 
-*These links only work in certain versions of Markdown.*
+*The links above only work in certain versions of Markdown.*
 
 # 1. The Application Itself
 
@@ -164,16 +164,151 @@ The `[Main Field]` is a single parameter that every query must include. Some que
 
 Below, each query is described in further detail.
 
-- check email                           CHKEML  email                           1 - done
-- check username                        CHKUSR  username                        2 - done
-- check password                        CHKPWD  username\npassword              3 - done
-- check friend                          CHKFND  username\nfriend                4 - done
-- create user                           CRTUSR  username\npassword\nemail       5 - done
-- delete user                           DELUSR  username                        6 - done
-- create chirp                          CRTCHP  username\nchirp                 7 - done
-- delete chirp                          DELCHP  username\nchirpid               8 - done
-- add friend                            ADDFND  username\nfriend                9 - done
-- delete friend                         DELFND  username\nfriend                10 - done
-- populate                              POPLAT  username                        11 - done
-- reorder friends                       MOVEUP  username\nfriendid              12 - done
-                                        MOVEDN  username\nfriendid              13 - don
+**1 CHKEML Check E-mail**
+
+*Checks if an e-mail already exists or not.*
+
+Query Format:
+
+	CHKEML [email]
+
+Response Format:
+
+	[YES or NO]
+
+**2 CHKUSR Check Username**
+
+*Checks if a user already exists or not.*
+
+Query Format:
+
+	CHKUSR [username]
+
+Response Format:
+
+	[YES or NO]
+
+**3 CHKPWD Check Password**
+
+*Check if a given password is valid for a given user.*
+
+Query Format:
+
+	CHKPWD [username]
+	[password]
+
+Response Format:
+
+	[YES or NO]
+
+**4 CHKFND Check Friend**
+
+*Checks if a friend is already on this users' friend list.*
+
+Query Format:
+
+	CHKFND [username]
+	[friendname]
+
+Response Format:
+
+	[YES or NO]
+
+**5 CRTUSR Create User**
+
+*Create a new user. Assumes existence checks have been performed separately.*
+
+Query Format:
+
+	CRTUSR [username]
+	[password]
+	[email]
+
+**6 DELUSR Delete User**
+
+*Delete a user.*
+
+Query Format:
+
+	DELUSR [username]
+
+**7 CRTCHP Create Chirp**
+
+*Create a chirp.*
+
+Query Format:
+
+	CRTCHP [username]
+	[chirp text]
+
+**8 DELCHP Delete Chirp**
+
+*Delete a chirp.*
+
+Query Format:
+
+	DELCHP [username]
+	[chirpid]
+
+Note: chirpid corresponds to the index of the chirp on the page.
+
+**9 ADDFND Add Friend**
+
+*Add a friend to the friend's list.*
+
+Query Format:
+
+	ADDFND [username]
+	[friendname]
+
+**10 DELFND Delete Friend**
+
+*Delete a friend from the friend's list.*
+
+Query Format:
+
+	DELFND [username]
+	[friendname]
+
+**11 POPLAT Populate Page**
+
+*Populate a user's main page with all chirps and friends.*
+
+Query Format:
+
+	POPLAT [username]
+
+Response Format:
+
+	[email]
+	[# of friends]
+	[each friend name]
+	[# of chirps]
+	[each chirp]
+	[# of chirps of friend 1]
+	[friend 1's chirps]
+	[# of chirps of friend 2]
+	[friend 2's chirps]
+	[...]
+
+**12 MOVEUP Move Friend Up**
+
+*Move a friend upwards on the friend's list.*
+
+Query Format:
+
+	MOVEUP [username]
+	[friendid]
+
+Note: friendid corresponds to the index of the friend on the page.
+
+**13 MOVEDN Move Friend Down**
+
+*Move a friend downwards on the friend's list.*
+
+Query Format:
+
+	MOVEDN [username]
+	[friendid]
+
+Note: friendid corresponds to the index of the friend on the page.
