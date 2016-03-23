@@ -155,7 +155,7 @@ def addfriend():
             return redirect(url_for('home', emptyfriend = True))
         if request.form['friend'] == session['username']:
             return redirect(url_for('home', addyourself = True))
-        s.sendall('CHKUSR ' + session['username'] + '\n')
+        s.sendall('CHKUSR ' + request.form['friend'] + '\n')
         chkusr = s.recv(4096)
         if chkusr == 'NO':
             return redirect(url_for('home', friendnotfound = True))
