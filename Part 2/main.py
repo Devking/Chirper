@@ -99,7 +99,7 @@ def home():
     retrievedemail = s.recv(4096)
     s.sendall('\n')
     retrievedfriends = []
-    for i in xrange(s.recv(4096)):
+    for i in xrange(int(s.recv(4096))):
         s.sendall('\n')
         retrievedfriends.append(s.recv(4096))
     s.sendall('\n')
@@ -109,7 +109,7 @@ def home():
                       'author': session['username'],
                       'chirps': []
                  }]
-    for j in xrange(s.recv(4096)):
+    for j in xrange(int(s.recv(4096))):
         s.sendall('\n')
         allchirps[0][chirps].append(s.recv(4096))
     s.sendall('\n')
@@ -120,7 +120,7 @@ def home():
                               'author': retrievedfriends[k],
                               'chirps': []
                          })
-        for l in xrange(s.recv(4096)):
+        for l in xrange(int(s.recv(4096))):
             s.sendall('\n')
             allchirps[k + 1][chirps].append(s.recv(4096))
         s.sendall('\n')
