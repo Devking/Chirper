@@ -4,8 +4,8 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 
 ## Table of Contents
 
-1. The Application Itself<br />
-	1.1. Dependencies<br />
+1. [The Application Itself](# 1. The Application Itself)<br />
+	1.1. [Dependencies](## 1.1 Dependencies)<br />
 	1.2. Running the Application<br />
 	&nbsp;&nbsp;&nbsp;1.2.1. Running the Application Responsively<br />
 	1.3. Dummy Example Data<br />
@@ -14,6 +14,7 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 	&nbsp;&nbsp;&nbsp;2.1.1. User Data File<br />
 	2.2 Queries<br />
 	2.3 Query API<br />
+	&nbsp;&nbsp;&nbsp;2.3.1 Query Descriptions<br />
 
 *These links only work in certain versions of Markdown.*
 
@@ -130,7 +131,7 @@ All queries and responses between the two servers follow the specific format of 
 
 ## Query API
 
-A query is described as any message sent from the Python web server to the C++11 data server.
+A query is described as any message sent from the Python web server to the C++11 data server. All queries will expect at least one response message from the data server.
 
 13 queries currently exist in our system. They are described as follows:
 
@@ -159,7 +160,9 @@ All queries follow the same format, which is represented below:
 
 The `[Main Field]` is a single parameter that every query must include. Some queries may pass extra data (described above as `[Optional Data Field]`, which is sent after a newline (`\n`).
 
--------
+### Query Descriptions
+
+Below, each query is described in further detail.
 
 - check email                           CHKEML  email                           1 - done
 - check username                        CHKUSR  username                        2 - done
