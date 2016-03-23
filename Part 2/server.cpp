@@ -1,5 +1,5 @@
 // Original code from Stevens Unix Network Programming, vol 1 with minor modifications by John Sterling
-// Modifications on the modified code by Wells Santo
+// Modifications on the modified code by Wells Santo and Patrick Kingchatchaval
 
 // This code acts as a data server that serves data to the Python web server
 // Runs on localhost:9000
@@ -116,7 +116,6 @@ void deleteFriend (const std::string& fileName, const std::string& friendName) {
         getline(mainFile, temp);
         if (temp != friendName) fileString += temp + "\n"; 
     }
-    // Get rest of the file
     while (getline(mainFile, temp))
         fileString += temp + "\n";
     mainFile.close();
@@ -146,6 +145,31 @@ void checkValidFriends (const std::string& fileName) {
             }
         }
     }
+}
+
+void deleteChirp (const std::string& fileName, int chirpid) {
+    std::ifstream mainFile(fileName.c_str());
+    std::string fileString = "";
+    std::string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    int noFriends = atoi(temp.c_str());
+    fileString += temp + "\n";
+    for (int i = 0; i < noFriends; i++)
+        getline(mainFile, temp);
+    getline(mainFile, temp);
+    int noChirps = atoi(temp.c_str());
+    fileString += std::to_string(noChirps - 1) + "\n";
+    for (int i = 0; i < noChirps; i++) {
+        getline(mainFile, temp);
+        if (i != chirpid) fileString += temp + "\n";
+    }
+    mainFile.close();
+    std::ofstream mainFile2(fileName.c_str());
+    mainFile2 << fileString;
 }
 
 int main() {
@@ -519,7 +543,6 @@ int main() {
                 int secondnewline = query.find('\n', newline+1);
                 int friendlength = secondnewline - newline - 1;
                 std::string friendName = query.substr(newline+1, friendlength);
-                std::cout << "|" << friendName << "|" << std::endl;
                 deleteFriend(fileName, friendName);
                 std::string temp = "YES";
                 sendMessage(temp, buff, connfd);
@@ -528,11 +551,14 @@ int main() {
 
             case DELCHP: {
                 std::string fileName = "users/" + field + ".txt";
+                std::cout << fileName << std::endl;
                 int secondnewline = query.find('\n', newline+1);
                 int valuelength = secondnewline - newline - 1;
+                std::cout << valuelength << std::endl;
                 int chirpid = atoi(query.substr(newline+1, valuelength).c_str());
-                // deleteChirp(fileName, chirpID);
-                std::string temp = "\n";
+                std::cout << chirpid << std::endl;
+                deleteChirp(fileName, chirpid);
+                std::string temp = "YES";
                 sendMessage(temp, buff, connfd);
                 break;
             }
