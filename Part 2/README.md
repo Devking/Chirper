@@ -157,6 +157,7 @@ All queries follow the same format, which is represented below:
 
 	[Query Code] [Main Field]
 	[Optional Data Field]
+	[Optional Data Field 2]
 
 The `[Main Field]` is a single parameter that every query must include. Some queries may pass extra data (described above as `[Optional Data Field]`, which is sent after a newline (`\n`).
 
