@@ -1,6 +1,5 @@
 pass
 admin
-2
-hi
+1
 bob
 0

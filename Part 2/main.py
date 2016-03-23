@@ -112,7 +112,7 @@ def home():
     for j in xrange(int(s.recv(4096))):
         s.sendall('\n')
         storage = s.recv(4096)
-        allchirps[0]['chirps'].append(storage) # stuck
+        allchirps[0]['chirps'].append(storage)
     s.sendall('\n')
 
     # Retrieve chirps of user's friends
