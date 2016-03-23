@@ -97,9 +97,12 @@ def home():
     # Retrieve email and friend list
     s.sendall('POPLAT ' + session['username'] + '\n')
     retrievedemail = s.recv(4096)
+    s.sendall('\n')
     retrievedfriends = []
     for i in xrange(s.recv(4096)):
+        s.sendall('\n')
         retrievedfriends.append(s.recv(4096))
+    s.sendall('\n')
 
     # Retrieve chirps of this user
     allchirps = [{
@@ -107,7 +110,9 @@ def home():
                       'chirps': []
                  }]
     for j in xrange(s.recv(4096)):
+        s.sendall('\n')
         allchirps[0][chirps].append(s.recv(4096))
+    s.sendall('\n')
 
     # Retrieve chirps of user's friends
     for k in xrange(len(retrievedfriends)):
@@ -116,7 +121,9 @@ def home():
                               'chirps': []
                          })
         for l in xrange(s.recv(4096)):
+            s.sendall('\n')
             allchirps[k + 1][chirps].append(s.recv(4096))
+        s.sendall('\n')
 
     # Otherwise, generate the home page
     return render_template('home.html',
