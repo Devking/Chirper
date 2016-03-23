@@ -1,5 +1,0 @@
-pass
-admin@admin.com
-1
-bob
-0

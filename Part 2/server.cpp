@@ -110,12 +110,13 @@ void deleteFriend (const std::string& fileName, const std::string& friendName) {
     getline(mainFile, temp);
     fileString += temp + "\n";
     getline(mainFile, temp);
-    fileString += temp + "\n";
     int noFriends = atoi(temp.c_str());
+    fileString += std::to_string(noFriends - 1) + "\n";
     for (int i = 0; i < noFriends; i++) {
         getline(mainFile, temp);
         if (temp != friendName) fileString += temp + "\n"; 
     }
+    // Get rest of the file
     while (getline(mainFile, temp))
         fileString += temp + "\n";
     mainFile.close();
@@ -266,7 +267,6 @@ int main() {
                         returnString += "NO";
                     }
                 } else {
-                    std::cout << "Did not find that user." << std::endl;
                     returnString += "NO";
                 }
                 mainFile.close();
@@ -455,7 +455,6 @@ int main() {
                 std::string fileName = "users/" + field + ".txt";
                 // This will first make sure that the friend's list is valid
                 checkValidFriends(fileName);
-                std::cout << "Finished checking valid friends" << std::endl;
                 // Assumes file exist, loop through and send relevant data
                 std::ifstream mainFile(fileName.c_str());
                 std::string temp;
@@ -463,46 +462,52 @@ int main() {
                 getline(mainFile, temp);
                 getline(mainFile, temp);
                 sendMessage(temp, buff, connfd);
-                std::cout << temp << std::endl;
+                read(connfd, readbuff, MAXLINE);
                 // Get the number of friends
                 getline(mainFile, temp);
                 int noFriends = atoi(temp.c_str());
                 sendMessage(temp, buff, connfd);
-                std::cout << temp << std::endl;
+                read(connfd, readbuff, MAXLINE);
                 // Keep track of list of friends
                 std::vector<std::string> friendsList;
                 for (int i = 0; i < noFriends; i++) {
                     getline(mainFile, temp);
                     friendsList.push_back(temp);
                     sendMessage(temp, buff, connfd);
-                    std::cout << temp << std::endl;
+                    read(connfd, readbuff, MAXLINE);
                 }
-                // Send everything else
-                while (getline(mainFile, temp)) {
+                getline(mainFile, temp);
+                int noChirps = atoi(temp.c_str());
+                sendMessage(temp, buff, connfd);
+                read(connfd, readbuff, MAXLINE);
+                // Send my own chirps
+                for (int i = 0; i < noChirps; i++) {
+                    getline(mainFile, temp);
                     sendMessage(temp, buff, connfd);
-                    std::cout << temp << std::endl;
+                    read(connfd, readbuff, MAXLINE); // stuck
                 }
                 mainFile.close();
+
                 // Go through the friends list and send the chirps of each friend
                 for (int i = 0; i < friendsList.size(); i++) {
                     std::string friendFileName = "users/" + friendsList[i] + ".txt";
                     std::ifstream friendFile(friendFileName.c_str());
-                    getline(mainFile, temp);
-                    getline(mainFile, temp);
-                    getline(mainFile, temp);
+                    getline(friendFile, temp);
+                    getline(friendFile, temp);
+                    getline(friendFile, temp);
                     int noFriends = atoi(temp.c_str());
                     for (int i = 0; i < noFriends; i++)
-                        getline(mainFile, temp);
+                        getline(friendFile, temp);
                     // Get number of chirps
-                    getline(mainFile, temp);
+                    getline(friendFile, temp);
                     sendMessage(temp, buff, connfd);
-                    std::cout << temp << std::endl;
+                    read(connfd, readbuff, MAXLINE);
                     int noChirps = atoi(temp.c_str());
                     // Send this friend's chirps
                     for (int i = 0; i < noChirps; i++) {
-                        getline(mainFile, temp);
+                        getline(friendFile, temp);
                         sendMessage(temp, buff, connfd);
-                        std::cout << temp << std::endl;
+                        read(connfd, readbuff, MAXLINE);
                     }
                     friendFile.close();
                 }
@@ -514,7 +519,19 @@ int main() {
                 int secondnewline = query.find('\n', newline+1);
                 int friendlength = secondnewline - newline - 1;
                 std::string friendName = query.substr(newline+1, friendlength);
+                std::cout << "|" << friendName << "|" << std::endl;
                 deleteFriend(fileName, friendName);
+                std::string temp = "YES";
+                sendMessage(temp, buff, connfd);
+                break;
+            }
+
+            case DELCHP: {
+                std::string fileName = "users/" + field + ".txt";
+                int secondnewline = query.find('\n', newline+1);
+                int valuelength = secondnewline - newline - 1;
+                int chirpid = atoi(query.substr(newline+1, valuelength).c_str());
+                // deleteChirp(fileName, chirpID);
                 std::string temp = "\n";
                 sendMessage(temp, buff, connfd);
                 break;

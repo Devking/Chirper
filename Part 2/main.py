@@ -111,7 +111,8 @@ def home():
                  }]
     for j in xrange(int(s.recv(4096))):
         s.sendall('\n')
-        allchirps[0][chirps].append(s.recv(4096))
+        storage = s.recv(4096)
+        allchirps[0]['chirps'].append(storage) # stuck
     s.sendall('\n')
 
     # Retrieve chirps of user's friends
@@ -122,7 +123,7 @@ def home():
                          })
         for l in xrange(int(s.recv(4096))):
             s.sendall('\n')
-            allchirps[k + 1][chirps].append(s.recv(4096))
+            allchirps[k + 1]['chirps'].append(s.recv(4096))
         s.sendall('\n')
 
     # Otherwise, generate the home page
