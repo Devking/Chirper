@@ -1,6 +1,6 @@
 dole
 test
-1
+2
+admin
 hi
-1
-test chirp
+0

@@ -164,7 +164,7 @@ void deleteChirp (const std::string& fileName, int chirpid) {
     int noFriends = atoi(temp.c_str());
     for (int i = 0; i < noFriends; i++) {
         getline(mainFile, temp);
-        fileString += temp;
+        fileString += temp + "\n";
     }
     getline(mainFile, temp);
     int noChirps = atoi(temp.c_str());

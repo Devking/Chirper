@@ -155,10 +155,7 @@ def postchirp():
 def deletechirp(chirp_id):
     # Make sure that if the user types in the URL, the chirp_id is a valid integer
     if 'username' in session and chirp_id.isdigit():
-        print 'in function'
-        print 'delete chirp'
         s.sendall('DELCHP ' + session['username'] + '\n' + chirp_id + '\n')
-        print 'send delete request'
         s.recv(4096)
     return redirect(url_for('home'))
 
