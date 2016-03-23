@@ -231,3 +231,6 @@ app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1c\xd8\xd2Q\x8e\xe0z\x8d\x
 
 # Run the Flask application
 app.run('localhost', 8000, debug = False)
+
+# Close the socket connection
+s.close()
