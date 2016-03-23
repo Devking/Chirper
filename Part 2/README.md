@@ -1,6 +1,6 @@
 First:
 
-`make server`
+`make`
 `./server`
 
 Then:
