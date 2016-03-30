@@ -4,17 +4,27 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 
 ## Table of Contents
 
-1. [The Application Itself](# 1. The Application Itself)<br />
-	1.1. [Dependencies](## 1.1 Dependencies)<br />
-	1.2. [Running the Application](## 1.2. Running the Application)<br />
-	&nbsp;&nbsp;&nbsp;1.2.1. [Running the Application Responsively](### 1.2.1. Running the Application Responsively)<br />
-	1.3. [Dummy Example Data](## 1.3. Dummy Example Data)<br />
-2. [Under the Hood](# Under the Hood)<br />
-	2.1 [Data Files](## Data Files)<br />
-	&nbsp;&nbsp;&nbsp;2.1.1. [User Data File](### User Data File)<br />
-	2.2 [Queries](## Queries)<br />
-	2.3 [Query API](## Query API)<br />
-	&nbsp;&nbsp;&nbsp;2.3.1 [Query Descriptions](### Query Descriptions)<br />
+1. The Application Itself
+
+	1.1. Dependencies
+
+	1.2. Running the Application
+
+	&nbsp;&nbsp;&nbsp;1.2.1. Running the Application Responsively
+
+	1.3. Dummy Example Data
+
+2. Under the Hood
+
+	2.1 Data Files
+
+	&nbsp;&nbsp;&nbsp;2.1.1. User Data File
+
+	2.2 Queries
+
+	2.3 Query API
+
+	&nbsp;&nbsp;&nbsp;2.3.1 Query Descriptions
 
 *The links above only work in certain versions of Markdown.*
 
