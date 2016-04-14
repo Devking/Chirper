@@ -50,6 +50,9 @@ int main() {
     }
 
     // 5. Block until the Python server connects.
+    //**// Need to update this to take one connection per query
+    //**// Also spin off the thread once the connection is accepted?
+    //**// Pass a handling function to the thread which also takes the connfd int
     fprintf(stderr, "Server awaiting connection...\n");
     if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
         perror("accept failed");
