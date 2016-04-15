@@ -52,7 +52,8 @@ void deleteChirpParse  (int newline, const std::string& query, const std::string
 
 // Query  9: ADDFND (Add Friend)
 void addFriend         (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query 10: DELFND (Delete Friend)
 void deleteFriend      (const std::string& fileName, const std::string& friendName);

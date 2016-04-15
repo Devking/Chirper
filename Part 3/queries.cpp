@@ -390,42 +390,50 @@ void deleteChirpParse (int newline, const string& query, const string& username,
 // Query  9: ADDFND (Add Friend)
 ///////////////////////////////////////////////////////////////////////////////
 
+// Add friend to a user's friend list (assumes the friend exists)
 void addFriend (int newline, const string& query, const string& username, 
-                char buff[MAXLINE], int connfd) {
-    string returnString = "";
+                char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    // Get the name of the friend
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
     string friendName = query.substr(newline+1, friendlength);
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    if (mainFile) {
-        string temp;
-        // Get the first two lines, they don't change
-        getline(mainFile, temp);
-        fileString += temp + "\n";
-        getline(mainFile, temp);
-        fileString += temp + "\n";
-        // Get the # of friends line and increment by 1
-        getline(mainFile,temp);
-        int noFriends = atoi(temp.c_str());
-        noFriends++;
-        fileString += to_string(noFriends) + "\n";
-        // Append the new friend
-        fileString += friendName + "\n";
-        // Append the rest of the old file
-        while (getline(mainFile, temp)) {
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        string fileString = "";
+        if (mainFile) {
+            string temp;
+            // Get the first two lines, they don't change
+            getline(mainFile, temp);
             fileString += temp + "\n";
+            getline(mainFile, temp);
+            fileString += temp + "\n";
+            // Get the # of friends line and increment by 1
+            getline(mainFile,temp);
+            int noFriends = atoi(temp.c_str());
+            noFriends++;
+            fileString += to_string(noFriends) + "\n";
+            // Append the new friend
+            fileString += friendName + "\n";
+            // Append the rest of the old file
+            while (getline(mainFile, temp)) fileString += temp + "\n";
+            mainFile.close();
+            ofstream mainFile2(fileName.c_str());
+            mainFile2 << fileString;
+            mainFile2.close();
         }
-        mainFile.close();
-        ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
-        mainFile2.close();
-        returnString += "YES";
-    } else {
-        returnString += "NO";
+        // Release the lock to access the user->mutex map
+        mappingMutex->unlock();
     }
-    sendMessage(returnString, buff, connfd);
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
