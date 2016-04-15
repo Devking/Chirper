@@ -20,9 +20,12 @@ void checkPassword     (int newline, const std::string& query, const std::string
                         std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query  4: CHKFND (Check Friend)
-bool checkFriend       (const std::string& fileName, const std::string& friendName);
+bool checkFriend       (const std::string& fileName, const std::string& friendName, 
+                        std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 void checkFriendParse  (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query  5: CRTUSR (Create User)
 void createUser        (int newline, const std::string& query, const std::string& username, 

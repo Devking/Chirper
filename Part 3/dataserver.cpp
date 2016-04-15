@@ -47,7 +47,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         case CHKUSR: sendMessage      (checkUser(field, userManifestMutex) ? "YES" : "NO", 
                                        buff, connfd); break;
         case CHKPWD: checkPassword    (newline, query, field, buff, connfd, mappingMutex, fileMutexes);       break;
-        case CHKFND: checkFriendParse (newline, query, field, buff, connfd);       break;
+        case CHKFND: checkFriendParse (newline, query, field, buff, connfd, mappingMutex, fileMutexes);       break;
         case CRTUSR: createUser       (newline, query, field, buff, connfd);       break;
         case DELUSR: deleteUser       (field, buff, connfd);                       break;
         case CRTCHP: createChirp      (newline, query, field, buff, connfd);       break;

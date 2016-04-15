@@ -104,37 +104,49 @@ void checkPassword (int newline, const string& query, const string& username,
 // Query  4: CHKFND (Check Friend)
 ///////////////////////////////////////////////////////////////////////////////
 
-bool checkFriend (const string& fileName, const string& friendName) {
-    ifstream mainFile(fileName.c_str());
-    if (mainFile) {
-        string temp;
-        // Get the first two lines, they aren't needed
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        // Get the # of friends line
-        getline(mainFile, temp);
-        int noFriends = atoi(temp.c_str());
-        // Loop over the friends
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (temp == friendName) {
-                mainFile.close();
-                return true;
+// Check if friend already exists in the friend list
+bool checkFriend (const string& username, const string& friendName, std::mutex* mappingMutex,
+                  std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    bool friendExists = false;
+    // Obtain the lock to access the user->mutex map
+    mappingMutex->lock();
+    // See if the user exists in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Obtain the lock to access the user file
+        fileMutexes.find(username)->second->lock();
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        if (mainFile) {
+            string temp;
+            // Get the line with the # of friends
+            for (int i = 0; i < 3; i++) getline(mainFile, temp);
+            int noFriends = atoi(temp.c_str());
+            // Loop over the friends to see if there's a match
+            for (int j = 0; j < noFriends; j++) {
+                getline(mainFile, temp);
+                if (temp == friendName) friendExists = true;
             }
         }
         mainFile.close();
+        // Release the lock to access the user file
+        fileMutexes.find(username)->second->unlock();
     }
-    return false;
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
+    return friendExists;
 }
 
+// A driver function for the checkFriend() method to parse the query first
 void checkFriendParse (int newline, const string& query, const string& username, 
-                       char buff[MAXLINE], int connfd) {
+                       char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                       std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    // Parse the query to get the friend name to check
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
     string friendName = query.substr(newline+1, friendlength);
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    sendMessage(checkFriend(fileName, friendName)?"YES":"NO", buff, connfd);
+    // Respond to the query based on whether the friend exists in the list or not
+    sendMessage(checkFriend(username, friendName, mappingMutex, fileMutexes) 
+                ? "YES" : "NO", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
