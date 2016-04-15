@@ -34,7 +34,9 @@ void createUser        (int newline, const std::string& query, const std::string
                         std::mutex* emailManifestMutex, std::mutex* userManifestMutex);
 
 // Query  6: DELUSR (Delete User)
-void deleteUser        (const std::string& username, char buff[MAXLINE], int connfd);
+void deleteUser        (const std::string& username, char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                  std::unordered_map<std::string, std::mutex*>& fileMutexes,
+                  std::mutex* emailManifestMutex, std::mutex* userManifestMutex);
 
 // Query  7: CRTCHP (Create Chirp)
 void createChirp       (int newline, const std::string& query, const std::string& username, 

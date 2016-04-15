@@ -153,6 +153,7 @@ void checkFriendParse (int newline, const string& query, const string& username,
 // Query  5: CRTUSR (Create User)
 ///////////////////////////////////////////////////////////////////////////////
 
+// Create a new user
 void createUser (int newline, const string& query, const string& username, 
                  char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                   std::unordered_map<std::string, std::mutex*>& fileMutexes,
@@ -202,20 +203,38 @@ void createUser (int newline, const string& query, const string& username,
 // Query  6: DELUSR (Delete User)
 ///////////////////////////////////////////////////////////////////////////////
 
-void deleteUser (const string& username, char buff[MAXLINE], int connfd) {
-    // Delete the file with the user
-    string returnString = "";
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    string email = "";
-    if (mainFile) {
-        getline(mainFile, email);
-        getline(mainFile, email);
+// Delete a user
+void deleteUser (const string& username, char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                  std::unordered_map<std::string, std::mutex*>& fileMutexes,
+                  std::mutex* emailManifestMutex, std::mutex* userManifestMutex) {
+    string email;
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file to get their email
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        for (int i = 0; i < 2; i++) getline(mainFile, email);
+        mainFile.close();
+        // Delete the file itself
+        if (remove(fileName.c_str()) != 0)
+            perror("deleting user file failed");
+        // Release the lock to access the user file
+        fileMutexes[username]->unlock();
+        // Remove the user from the mutex map
+        delete fileMutexes[username];
+        fileMutexes.erase(fileMutexes.find(username));
+    } else {
+        return;
     }
-    mainFile.close();
-    if (remove(fileName.c_str()) != 0)
-        perror("deleting user file failed");
-    // Delete the email from the email text file
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
+
+    // Delete the email from the email text file (lock & unlock)
+    emailManifestMutex->lock();
     ifstream mailFile("manifest/email.txt");
     string mailString = "";
     if (mailFile) {
@@ -227,7 +246,10 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd) {
     ofstream mailFile2("manifest/email.txt");
     mailFile2 << mailString;
     mailFile2.close();
-    // Delete the username from the username text file
+    emailManifestMutex->unlock();
+
+    // Delete the username from the username text file (lock & unlock)
+    userManifestMutex->lock();
     ifstream nameFile("manifest/user.txt");
     string nameString = "";
     if (nameFile) {
@@ -238,7 +260,7 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd) {
     nameFile.close();
     ofstream nameFile2("manifest/user.txt");
     nameFile2 << nameString;
-    sendMessage(returnString, buff, connfd);
+    userManifestMutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

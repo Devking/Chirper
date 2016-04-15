@@ -24,6 +24,7 @@
 void processQuery (int connfd, const std::unordered_map<std::string, int>& actions, 
                    std::unordered_map<std::string, std::mutex*>& fileMutexes, std::mutex* mappingMutex, 
                    std::mutex* userManifestMutex, std::mutex* emailManifestMutex) {
+
     // Read the received message/query itself
     char buff     [MAXLINE];
     char readbuff [MAXLINE];
@@ -32,6 +33,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         perror("Read message failed");
         exit(5);
     }
+
     // Break up the client's message based on API-defined formatting
     std::string query = readbuff;
     int space = query.find(' ');
@@ -39,6 +41,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     int fieldLength = newline - space - 1;
     std::string action = query.substr(0, space);
     std::string field = query.substr(space + 1, fieldLength);
+
     // Determine which action to take using the query mapping
     auto itr = actions.find(action);
     int actionID = (itr != actions.end()) ? itr->second : 0;
@@ -58,11 +61,12 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
                                        mappingMutex, fileMutexes, emailManifestMutex, 
                                        userManifestMutex); break;
 
-
+        case DELUSR: deleteUser       (field, buff, connfd,
+                                       mappingMutex, fileMutexes, emailManifestMutex, 
+                                       userManifestMutex); break;
 
 
         
-        case DELUSR: deleteUser       (field, buff, connfd);                       break;
         case CRTCHP: createChirp      (newline, query, field, buff, connfd);       break;
         case DELCHP: deleteChirpParse (newline, query, field, buff, connfd);       break;
         case ADDFND: addFriend        (newline, query, field, buff, connfd);       break;
@@ -72,6 +76,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd);       break;
         default:                                                                   break;
     }
+
     // Close the connection
     close(connfd);
 }
