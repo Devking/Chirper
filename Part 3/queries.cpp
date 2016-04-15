@@ -7,17 +7,18 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <cstdio>   // remove
-// #include <unistd.h> // read
+#include <cstdio>   // remove (file)
+using namespace std;
 
-bool checkUser (const std::string& username) {
-    std::ifstream userFile("manifest/user.txt");
+// Check if a user exists in the user manifest file
+bool checkUser (const string& username) {
+    ifstream userFile("manifest/user.txt");
     if (!userFile) {
-        std::ofstream userFile("manifest/user.txt");
+        ofstream userFile("manifest/user.txt");
         userFile.close();
         return false;
     } else {
-        std::string user;
+        string user;
         while (getline(userFile, user, ','))
             if (user == username) {
                 userFile.close();
@@ -28,10 +29,10 @@ bool checkUser (const std::string& username) {
     return false;
 }
 
-bool checkFriend (const std::string& fileName, const std::string& friendName) {
-    std::ifstream mainFile(fileName.c_str());
+bool checkFriend (const string& fileName, const string& friendName) {
+    ifstream mainFile(fileName.c_str());
     if (mainFile) {
-        std::string temp;
+        string temp;
         // Get the first two lines, they aren't needed
         getline(mainFile, temp);
         getline(mainFile, temp);
@@ -51,17 +52,17 @@ bool checkFriend (const std::string& fileName, const std::string& friendName) {
     return false;
 }
 
-void deleteFriend (const std::string& fileName, const std::string& friendName) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
+void deleteFriend (const string& fileName, const string& friendName) {
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
+    string temp;
     getline(mainFile, temp);
     fileString += temp + "\n";
     getline(mainFile, temp);
     fileString += temp + "\n";
     getline(mainFile, temp);
     int noFriends = atoi(temp.c_str());
-    fileString += std::to_string(noFriends - 1) + "\n";
+    fileString += to_string(noFriends - 1) + "\n";
     for (int i = 0; i < noFriends; i++) {
         getline(mainFile, temp);
         if (temp != friendName) fileString += temp + "\n";
@@ -69,19 +70,19 @@ void deleteFriend (const std::string& fileName, const std::string& friendName) {
     while (getline(mainFile, temp))
         fileString += temp + "\n";
     mainFile.close();
-    std::ofstream mainFile2(fileName.c_str());
+    ofstream mainFile2(fileName.c_str());
     mainFile2 << fileString;
 }
 
-void checkValidFriends (const std::string& fileName) {
-    std::ifstream mainFile(fileName.c_str());
+void checkValidFriends (const string& fileName) {
+    ifstream mainFile(fileName.c_str());
     if (mainFile) {
-        std::string temp;
+        string temp;
         getline(mainFile, temp);
         getline(mainFile, temp);
         getline(mainFile, temp);
         int noFriends = atoi(temp.c_str());
-        std::vector<std::string> friendsList;
+        vector<string> friendsList;
         for (int i = 0; i < noFriends; i++) {
             getline(mainFile, temp);
             friendsList.push_back(temp);
@@ -97,10 +98,10 @@ void checkValidFriends (const std::string& fileName) {
     }
 }
 
-void deleteChirp (const std::string& fileName, int chirpid) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
+void deleteChirp (const string& fileName, int chirpid) {
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
+    string temp;
     getline(mainFile, temp);
     fileString += temp + "\n";
     getline(mainFile, temp);
@@ -114,20 +115,20 @@ void deleteChirp (const std::string& fileName, int chirpid) {
     }
     getline(mainFile, temp);
     int noChirps = atoi(temp.c_str());
-    fileString += std::to_string(noChirps - 1) + "\n";
+    fileString += to_string(noChirps - 1) + "\n";
     for (int i = 0; i < noChirps; i++) {
         getline(mainFile, temp);
         if (i != chirpid) fileString += temp + "\n";
     }
     mainFile.close();
-    std::ofstream mainFile2(fileName.c_str());
+    ofstream mainFile2(fileName.c_str());
     mainFile2 << fileString;
 }
 
-void moveUserUp (const std::string& fileName, int userid) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
+void moveUserUp (const string& fileName, int userid) {
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
+    string temp;
     getline(mainFile, temp);
     fileString += temp + "\n";
     getline(mainFile, temp);
@@ -136,7 +137,7 @@ void moveUserUp (const std::string& fileName, int userid) {
     fileString += temp + "\n";
     int noFriends = atoi(temp.c_str());
     if (userid > 0 && userid < noFriends) {
-        std::string user;
+        string user;
         for (int i = 0; i < noFriends; i++) {
             getline(mainFile, temp);
             if (i == userid-1)
@@ -149,15 +150,15 @@ void moveUserUp (const std::string& fileName, int userid) {
         while (getline(mainFile, temp))
             fileString += temp + "\n";
         mainFile.close();
-        std::ofstream mainFile2(fileName.c_str());
+        ofstream mainFile2(fileName.c_str());
         mainFile2 << fileString;
     }
 }
 
-void moveUserDown (const std::string& fileName, int userid) {
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
-    std::string temp;
+void moveUserDown (const string& fileName, int userid) {
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
+    string temp;
     getline(mainFile, temp);
     fileString += temp + "\n";
     getline(mainFile, temp);
@@ -166,7 +167,7 @@ void moveUserDown (const std::string& fileName, int userid) {
     fileString += temp + "\n";
     int noFriends = atoi(temp.c_str());
     if (userid > -1 && userid < noFriends - 1) {
-        std::string user;
+        string user;
         for (int i = 0; i < noFriends; i++) {
             getline(mainFile, temp);
             if (i == userid)
@@ -179,19 +180,19 @@ void moveUserDown (const std::string& fileName, int userid) {
          while (getline(mainFile, temp))
             fileString += temp + "\n";
         mainFile.close();
-        std::ofstream mainFile2(fileName.c_str());
+        ofstream mainFile2(fileName.c_str());
         mainFile2 << fileString;
     }
 }
 
-void checkEmail (const std::string& emailToFind, char buff[MAXLINE], int connfd) {
-    std::string returnString = "";
-    std::ifstream emailFile("manifest/email.txt");
+void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd) {
+    string returnString = "";
+    ifstream emailFile("manifest/email.txt");
     if (!emailFile) {
-        std::ofstream emailFile("manifest/email.txt");
+        ofstream emailFile("manifest/email.txt");
         returnString += "NO";
     } else {
-        std::string email;
+        string email;
         bool foundEmail = false;
         while (getline(emailFile, email, ',')) if (email == emailToFind) foundEmail = true;
         returnString += foundEmail ? "YES" : "NO";
@@ -200,15 +201,15 @@ void checkEmail (const std::string& emailToFind, char buff[MAXLINE], int connfd)
     sendMessage(returnString, buff, connfd);
 }
 
-void checkPassword (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string returnString = "NO";
+void checkPassword (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string returnString = "NO";
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
-    std::string password = query.substr(newline+1, passwordlength);
-    std::string fileName = "users/" + username + ".txt";
-    std::ifstream mainFile(fileName.c_str());
+    string password = query.substr(newline+1, passwordlength);
+    string fileName = "users/" + username + ".txt";
+    ifstream mainFile(fileName.c_str());
     if (mainFile) {
-        std::string filePassword;
+        string filePassword;
         getline(mainFile, filePassword);
         if (filePassword == password) returnString = "YES";
     }
@@ -216,12 +217,12 @@ void checkPassword (int newline, const std::string& query, const std::string& us
     sendMessage(returnString, buff, connfd);
 }
 
-void deleteUser (const std::string& username, char buff[MAXLINE], int connfd) {
+void deleteUser (const string& username, char buff[MAXLINE], int connfd) {
     // Delete the file with the user
-    std::string returnString = "";
-    std::string fileName = "users/" + username + ".txt";
-    std::ifstream mainFile(fileName.c_str());
-    std::string email = "";
+    string returnString = "";
+    string fileName = "users/" + username + ".txt";
+    ifstream mainFile(fileName.c_str());
+    string email = "";
     if (mainFile) {
         getline(mainFile, email);
         getline(mainFile, email);
@@ -230,64 +231,64 @@ void deleteUser (const std::string& username, char buff[MAXLINE], int connfd) {
     if (remove(fileName.c_str()) != 0)
         perror("deleting user file failed");
     // Delete the email from the email text file
-    std::ifstream mailFile("manifest/email.txt");
-    std::string mailString = "";
+    ifstream mailFile("manifest/email.txt");
+    string mailString = "";
     if (mailFile) {
-        std::string temp;
+        string temp;
         while (getline(mailFile, temp, ','))
             if (temp != email) mailString += temp + ",";
     }
     mailFile.close();
-    std::ofstream mailFile2("manifest/email.txt");
+    ofstream mailFile2("manifest/email.txt");
     mailFile2 << mailString;
     mailFile2.close();
     // Delete the username from the username text file
-    std::ifstream nameFile("manifest/user.txt");
-    std::string nameString = "";
+    ifstream nameFile("manifest/user.txt");
+    string nameString = "";
     if (nameFile) {
-        std::string temp;
+        string temp;
         while (getline(nameFile, temp, ','))
             if (temp != username) nameString += temp + ",";
     }
     nameFile.close();
-    std::ofstream nameFile2("manifest/user.txt");
+    ofstream nameFile2("manifest/user.txt");
     nameFile2 << nameString;
     sendMessage(returnString, buff, connfd);
 }
 
-void createUser (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string returnString = "";
+void createUser (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string returnString = "";
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
-    std::string password = query.substr(newline+1, passwordlength);
+    string password = query.substr(newline+1, passwordlength);
     int thirdnewline = query.find('\n', secondnewline+1);
     int emaillength = thirdnewline - secondnewline - 1;
-    std::string email = query.substr(secondnewline+1, emaillength);
-    std::string fileName = "users/" + username + ".txt";
-    std::ofstream mainFile(fileName.c_str());
+    string email = query.substr(secondnewline+1, emaillength);
+    string fileName = "users/" + username + ".txt";
+    ofstream mainFile(fileName.c_str());
     mainFile << password << "\n";
     mainFile << email << "\n";
     mainFile << "0\n0\n";
-    std::ofstream mailFile("manifest/email.txt", std::ios_base::app);
+    ofstream mailFile("manifest/email.txt", ios_base::app);
     mailFile << email << ",";
     mailFile.close();
-    std::ofstream userFile("manifest/user.txt", std::ios_base::app);
+    ofstream userFile("manifest/user.txt", ios_base::app);
     userFile << username << ",";
     userFile.close();
     returnString += "YES";
     sendMessage(returnString, buff, connfd);
 }
 
-void createChirp (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string returnString = "";
+void createChirp (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string returnString = "";
     int secondnewline = query.find('\n', newline+1);
     int chirplength = secondnewline - newline - 1;
-    std::string chirp = query.substr(newline+1, chirplength);
-    std::string fileName = "users/" + username + ".txt";
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
+    string chirp = query.substr(newline+1, chirplength);
+    string fileName = "users/" + username + ".txt";
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
     if (mainFile) {
-        std::string temp;
+        string temp;
         // Get the first two lines, they don't change
         getline(mainFile, temp);
         fileString += temp + "\n";
@@ -306,7 +307,7 @@ void createChirp (int newline, const std::string& query, const std::string& user
         getline(mainFile, temp);
         int noChirps = atoi(temp.c_str());
         noChirps++;
-        fileString += std::to_string(noChirps) + "\n";
+        fileString += to_string(noChirps) + "\n";
         // Append the new chirp
         fileString += chirp + "\n";
         // Append the rest of the old file
@@ -314,7 +315,7 @@ void createChirp (int newline, const std::string& query, const std::string& user
             fileString += temp + "\n";
         }
         mainFile.close();
-        std::ofstream mainFile2(fileName.c_str());
+        ofstream mainFile2(fileName.c_str());
         mainFile2 << fileString;
         mainFile2.close();
         returnString += "YES";
@@ -324,35 +325,35 @@ void createChirp (int newline, const std::string& query, const std::string& user
     sendMessage(returnString, buff, connfd);
 }
 
-void checkFriendParse (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
+void checkFriendParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
-    std::string friendName = query.substr(newline+1, friendlength);
-    std::string fileName = "users/" + username + ".txt";
-    std::ifstream mainFile(fileName.c_str());
+    string friendName = query.substr(newline+1, friendlength);
+    string fileName = "users/" + username + ".txt";
+    ifstream mainFile(fileName.c_str());
     sendMessage(checkFriend(fileName, friendName)?"YES":"NO", buff, connfd);
 }
 
-void deleteChirpParse (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string fileName = "users/" + username + ".txt";
+void deleteChirpParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int chirpid = atoi(query.substr(newline+1, valuelength).c_str());
     deleteChirp(fileName, chirpid);
-    std::string temp = "YES";
+    string temp = "YES";
     sendMessage(temp, buff, connfd);
 }
 
-void addFriend (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string returnString = "";
+void addFriend (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string returnString = "";
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
-    std::string friendName = query.substr(newline+1, friendlength);
-    std::string fileName = "users/" + username + ".txt";
-    std::ifstream mainFile(fileName.c_str());
-    std::string fileString = "";
+    string friendName = query.substr(newline+1, friendlength);
+    string fileName = "users/" + username + ".txt";
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
     if (mainFile) {
-        std::string temp;
+        string temp;
         // Get the first two lines, they don't change
         getline(mainFile, temp);
         fileString += temp + "\n";
@@ -362,7 +363,7 @@ void addFriend (int newline, const std::string& query, const std::string& userna
         getline(mainFile,temp);
         int noFriends = atoi(temp.c_str());
         noFriends++;
-        fileString += std::to_string(noFriends) + "\n";
+        fileString += to_string(noFriends) + "\n";
         // Append the new friend
         fileString += friendName + "\n";
         // Append the rest of the old file
@@ -370,7 +371,7 @@ void addFriend (int newline, const std::string& query, const std::string& userna
             fileString += temp + "\n";
         }
         mainFile.close();
-        std::ofstream mainFile2(fileName.c_str());
+        ofstream mainFile2(fileName.c_str());
         mainFile2 << fileString;
         mainFile2.close();
         returnString += "YES";
@@ -380,56 +381,56 @@ void addFriend (int newline, const std::string& query, const std::string& userna
     sendMessage(returnString, buff, connfd);
 }
 
-void deleteFriendParse (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string fileName = "users/" + username + ".txt";
+void deleteFriendParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
-    std::string friendName = query.substr(newline+1, friendlength);
+    string friendName = query.substr(newline+1, friendlength);
     deleteFriend(fileName, friendName);
-    std::string temp = "YES";
+    string temp = "YES";
     sendMessage(temp, buff, connfd);
 }
 
-void populatePage (const std::string& username, char buff[MAXLINE], int connfd, char readbuff[MAXLINE]) {
-    std::string fileName = "users/" + username + ".txt";
+void populatePage (const string& username, char buff[MAXLINE], int connfd, char readbuff[MAXLINE]) {
+    string fileName = "users/" + username + ".txt";
     // This will first make sure that the friend's list is valid
     checkValidFriends(fileName);
     // Assumes file exist, loop through and send relevant data
-    std::ifstream mainFile(fileName.c_str());
-    std::string temp;
+    ifstream mainFile(fileName.c_str());
+    string temp;
     // Send the second line of the file (email)
     getline(mainFile, temp);
     getline(mainFile, temp);
+    temp += "\n";
     sendMessage(temp, buff, connfd);
-    // read(connfd, readbuff, MAXLINE);
     // Get the number of friends
     getline(mainFile, temp);
     int noFriends = atoi(temp.c_str());
+    temp += "\n";
     sendMessage(temp, buff, connfd);
-    // read(connfd, readbuff, MAXLINE);
     // Keep track of list of friends
-    std::vector<std::string> friendsList;
+    vector<string> friendsList;
     for (int i = 0; i < noFriends; i++) {
         getline(mainFile, temp);
         friendsList.push_back(temp);
+        temp += "\n";
         sendMessage(temp, buff, connfd);
-        // read(connfd, readbuff, MAXLINE);
     }
     getline(mainFile, temp);
     int noChirps = atoi(temp.c_str());
+    temp += "\n";
     sendMessage(temp, buff, connfd);
-    // read(connfd, readbuff, MAXLINE);
-    // Send my own chirps
+    // Send this user's own chirps
     for (int i = 0; i < noChirps; i++) {
         getline(mainFile, temp);
+        temp += "\n";
         sendMessage(temp, buff, connfd);
-        // read(connfd, readbuff, MAXLINE);
     }
     mainFile.close();
     // Go through the friends list and send the chirps of each friend
     for (int i = 0; i < friendsList.size(); i++) {
-        std::string friendFileName = "users/" + friendsList[i] + ".txt";
-        std::ifstream friendFile(friendFileName.c_str());
+        string friendFileName = "users/" + friendsList[i] + ".txt";
+        ifstream friendFile(friendFileName.c_str());
         getline(friendFile, temp);
         getline(friendFile, temp);
         getline(friendFile, temp);
@@ -438,35 +439,35 @@ void populatePage (const std::string& username, char buff[MAXLINE], int connfd, 
             getline(friendFile, temp);
         // Get number of chirps
         getline(friendFile, temp);
+        temp += "\n";
         sendMessage(temp, buff, connfd);
-        // read(connfd, readbuff, MAXLINE);
         int noChirps = atoi(temp.c_str());
         // Send this friend's chirps
         for (int i = 0; i < noChirps; i++) {
             getline(friendFile, temp);
+            temp += "\n";
             sendMessage(temp, buff, connfd);
-            // read(connfd, readbuff, MAXLINE);
         }
         friendFile.close();
     }
 }
 
-void moveUserUpParse (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string fileName = "users/" + username + ".txt";
+void moveUserUpParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     moveUserUp(fileName, userid);
-    std::string temp = "YES";
+    string temp = "YES";
     sendMessage(temp, buff, connfd);
 }
 
-void moveUserDownParse (int newline, const std::string& query, const std::string& username, char buff[MAXLINE], int connfd) {
-    std::string fileName = "users/" + username + ".txt";
+void moveUserDownParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     moveUserDown(fileName, userid);
-    std::string temp = "YES";
+    string temp = "YES";
     sendMessage(temp, buff, connfd);
 }

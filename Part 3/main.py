@@ -106,10 +106,10 @@ def home():
     splitdata = alldata.split('\n')
     index = 0
     retrievedemail = splitdata[index]
-    index++
+    index += 1
     retrievedfriends = []
     for i in xrange(int(splitdata[index])):
-        index++
+        index += 1
         retrievedfriends.append(splitdata[index])
 
     # Retrieve chirps of this user
@@ -117,9 +117,9 @@ def home():
                       'author': session['username'],
                       'chirps': []
                  }]
-    index++
+    index += 1
     for j in xrange(int(splitdata[index])):
-        index++
+        index += 1
         allchirps[0]['chirps'].append(splitdata[index])
 
     # Retrieve chirps of user's friends
@@ -128,9 +128,9 @@ def home():
                               'author': retrievedfriends[k],
                               'chirps': []
                          })
-        index++
+        index += 1
         for l in xrange(int(splitdata[index])):
-            index++
+            index += 1
             allchirps[k + 1]['chirps'].append(splitdata[index])
 
     # Otherwise, generate the home page
