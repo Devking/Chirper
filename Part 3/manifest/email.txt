@@ -1,1 +1,1 @@
-admin@admin.com,bob@dole.com,test,
+admin@admin.com,bob@dole.com,test,test@test.com,bernie@sanders.com,

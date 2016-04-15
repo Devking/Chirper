@@ -29,7 +29,9 @@ void checkFriendParse  (int newline, const std::string& query, const std::string
 
 // Query  5: CRTUSR (Create User)
 void createUser        (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes,
+                        std::mutex* emailManifestMutex, std::mutex* userManifestMutex);
 
 // Query  6: DELUSR (Delete User)
 void deleteUser        (const std::string& username, char buff[MAXLINE], int connfd);

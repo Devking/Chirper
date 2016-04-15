@@ -154,27 +154,48 @@ void checkFriendParse (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 void createUser (int newline, const string& query, const string& username, 
-                 char buff[MAXLINE], int connfd) {
-    string returnString = "";
+                 char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                  std::unordered_map<std::string, std::mutex*>& fileMutexes,
+                  std::mutex* emailManifestMutex, std::mutex* userManifestMutex) {
+    // Break up the query to get the password
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
     string password = query.substr(newline+1, passwordlength);
+    // Break up the query to get the email address
     int thirdnewline = query.find('\n', secondnewline+1);
     int emaillength = thirdnewline - secondnewline - 1;
     string email = query.substr(secondnewline+1, emaillength);
+    
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Add the current user to the user->mutex map
+    fileMutexes[username] = new mutex;
+    // Get the lock to access the user file
+    fileMutexes[username]->lock();
+    // Create the user file and initialize it
     string fileName = "users/" + username + ".txt";
     ofstream mainFile(fileName.c_str());
     mainFile << password << "\n";
     mainFile << email << "\n";
     mainFile << "0\n0\n";
+    // Release the lock to access the user file
+    fileMutexes[username]->unlock();
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
+
+    // Update the email manifest file (lock & unlock)
+    emailManifestMutex->lock();
     ofstream mailFile("manifest/email.txt", ios_base::app);
     mailFile << email << ",";
     mailFile.close();
+    emailManifestMutex->unlock();
+
+    // Update the user manifest file (lock & unlock)
+    userManifestMutex->lock();
     ofstream userFile("manifest/user.txt", ios_base::app);
     userFile << username << ",";
     userFile.close();
-    returnString += "YES";
-    sendMessage(returnString, buff, connfd);
+    userManifestMutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
