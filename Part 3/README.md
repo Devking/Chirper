@@ -15,6 +15,11 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 	2. Queries
 	3. Query API
 		1. Query Descriptions
+3. **Multithreading and Locks**
+	1. Multithreading
+	2. Locks
+
+**For documentation on Part 3 of the Project, please jump to the "Multithreading and Locks" section of this README.**
 
 # 1. The Application Itself
 
@@ -311,3 +316,13 @@ Query Format:
 	[friendid]
 
 Note: friendid corresponds to the index of the friend on the page.
+
+# 3. Multithreading and Locks
+
+## 3.1 Multithreading
+
+One thread to handle each client query.
+
+## 3.2 Locks
+
+Overview: Three locks on the stack and a variety of locks on the heap.

@@ -10,15 +10,19 @@
 #include <sys/socket.h>  // socket, AF_INET, SOCK_STREAM, bind, listen, accept
 #include <netinet/in.h>  // servaddr, INADDR_ANY, htons
 
-#include <thread>
 #include <string>
 #include <unordered_map>
 #include "api_mapping.h"
 #include <functional>
 #include "queries.h"
 
+#include <thread>
+#include <mutex>
+
 // When a connection is accepted, each thread will perform this function to process the relevant query
-void processQuery (int connfd, const std::unordered_map<std::string, int>& actions) {
+void processQuery (int connfd, const std::unordered_map<std::string, int>& actions, 
+                   std::unordered_map<std::string, std::mutex*>& fileMutexes, std::mutex* mappingMutex, 
+                   std::mutex* userManifestMutex, std::mutex* emailManifestMutex) {
     // Read the received message/query itself
     char buff     [MAXLINE];
     char readbuff [MAXLINE];
@@ -27,7 +31,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         perror("Read message failed");
         exit(5);
     }
-    // Break up the client's query based on API-defined formatting
+    // Break up the client's message based on API-defined formatting
     std::string query = readbuff;
     int space = query.find(' ');
     int newline = query.find('\n');
@@ -61,6 +65,12 @@ int main() {
     // Get API mapping for query codes
     std::unordered_map<std::string, int> actions;
     initAPIMapping(actions);
+
+    // Create unordered map for mapping user files to mutexes
+    std::unordered_map<std::string, std::mutex*> fileMutexes;
+    std::mutex mappingMutex;       // Create mutex for locking the unordered map
+    std::mutex userManifestMutex;  // Create mutex for the user manifest text file
+    std::mutex emailManifestMutex; // Create mutex for the email manifest text file
 
     // Initialize variables for sockets
     int    listenfd, connfd;     // Unix file descriptors
@@ -102,7 +112,8 @@ int main() {
         fprintf(stderr, "A Python client is connected!\n");
 
         // Spin off a new thread to process the query of the current connection
-        std::thread newThread(processQuery, connfd, std::cref(actions));
+        std::thread newThread(processQuery, connfd, std::cref(actions), std::ref(fileMutexes), 
+                              &mappingMutex, &userManifestMutex, &emailManifestMutex);
         newThread.detach();
     }
 }
