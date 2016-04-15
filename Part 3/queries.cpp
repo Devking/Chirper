@@ -267,51 +267,61 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd, std::mu
 // Query  7: CRTCHP (Create Chirp)
 ///////////////////////////////////////////////////////////////////////////////
 
+// Post a chirp for a user
 void createChirp (int newline, const string& query, const string& username, 
-                  char buff[MAXLINE], int connfd) {
-    string returnString = "";
+                  char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                  std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    // Get the chirp content
     int secondnewline = query.find('\n', newline+1);
     int chirplength = secondnewline - newline - 1;
     string chirp = query.substr(newline+1, chirplength);
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    if (mainFile) {
-        string temp;
-        // Get the first two lines, they don't change
-        getline(mainFile, temp);
-        fileString += temp + "\n";
-        getline(mainFile, temp);
-        fileString += temp + "\n";
-        // Get the # of friends line
-        getline(mainFile, temp);
-        fileString += temp + "\n";
-        int noFriends = atoi(temp.c_str());
-        // Skip all of the friends lines
-        for (int i = 0; i < noFriends; i++) {
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        if (mainFile) {
+            string fileString = "";
+            string temp;
+            // Get the first two lines, they don't change
             getline(mainFile, temp);
             fileString += temp + "\n";
-        }
-        // Get the # of chirps line and increment by 1
-        getline(mainFile, temp);
-        int noChirps = atoi(temp.c_str());
-        noChirps++;
-        fileString += to_string(noChirps) + "\n";
-        // Append the new chirp
-        fileString += chirp + "\n";
-        // Append the rest of the old file
-        while (getline(mainFile, temp)) {
+            getline(mainFile, temp);
             fileString += temp + "\n";
+            // Get the # of friends line
+            getline(mainFile, temp);
+            fileString += temp + "\n";
+            int noFriends = atoi(temp.c_str());
+            // Skip all of the friends lines
+            for (int i = 0; i < noFriends; i++) {
+                getline(mainFile, temp);
+                fileString += temp + "\n";
+            }
+            // Get the # of chirps line and increment by 1
+            getline(mainFile, temp);
+            int noChirps = atoi(temp.c_str());
+            noChirps++;
+            fileString += to_string(noChirps) + "\n";
+            // Append the new chirp
+            fileString += chirp + "\n";
+            // Append the rest of the old file
+            while (getline(mainFile, temp)) {
+                fileString += temp + "\n";
+            }
+            mainFile.close();
+            ofstream mainFile2(fileName.c_str());
+            mainFile2 << fileString;
+            mainFile2.close();
         }
-        mainFile.close();
-        ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
-        mainFile2.close();
-        returnString += "YES";
-    } else {
-        returnString += "NO";
+        // Release the lock to access the user file
+        fileMutexes[username]->unlock();
     }
-    sendMessage(returnString, buff, connfd);
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

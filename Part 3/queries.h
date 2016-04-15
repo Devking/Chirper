@@ -40,7 +40,8 @@ void deleteUser        (const std::string& username, char buff[MAXLINE], int con
 
 // Query  7: CRTCHP (Create Chirp)
 void createChirp       (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query  8: DELCHP (Delete Chirp)
 void deleteChirp       (const std::string& fileName, int chirpid);
