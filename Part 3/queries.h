@@ -3,6 +3,7 @@
 
 #include <string>
 #include <mutex>
+#include <unordered_map>
 
 #include "mappings.h"
 
@@ -15,7 +16,8 @@ bool checkUser         (const std::string& username, std::mutex* userManifestMut
 
 // Query  3: CHKPWD (Check Password)
 void checkPassword     (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query  4: CHKFND (Check Friend)
 bool checkFriend       (const std::string& fileName, const std::string& friendName);

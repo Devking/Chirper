@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstdio>   // remove() file
 #include <mutex>
+#include <unordered_map>
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,20 +68,35 @@ bool checkUser (const string& username, std::mutex* userManifestMutex) {
 // Query  3: CHKPWD (Check Password)
 ///////////////////////////////////////////////////////////////////////////////
 
+// Check if the password is correct for a specific user
 void checkPassword (int newline, const string& query, const string& username, 
-                    char buff[MAXLINE], int connfd) {
+                    char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                    std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     string returnString = "NO";
+    // Break up the query message to get the password
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
     string password = query.substr(newline+1, passwordlength);
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    if (mainFile) {
-        string filePassword;
-        getline(mainFile, filePassword);
-        if (filePassword == password) returnString = "YES";
+    // Obtain the lock to access the user->mutex map
+    mappingMutex->lock();
+    // See if the user exists in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Obtain the lock to access the user file
+        fileMutexes.find(username)->second->lock();
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        if (mainFile) {
+            string filePassword;
+            getline(mainFile, filePassword);
+            if (filePassword == password) returnString = "YES";
+        }
+        mainFile.close();
+        // Release the lock to access the user file
+        fileMutexes.find(username)->second->unlock();
     }
-    mainFile.close();
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
+    // Send either YES or NO if the password matches
     sendMessage(returnString, buff, connfd);
 }
 
