@@ -14,24 +14,28 @@
 #include <string>
 #include <unordered_map>
 #include "api_mapping.h"
+#include <functional>
 #include "queries.h"
 
-void processQuery (int connfd, const std::unordered_map<std::string, int>& actions, char buff [MAXLINE]) {
-    // 6. Read the query from this client
-    char readbuff[MAXLINE];
+// When a connection is accepted, each thread will perform this function to process the relevant query
+void processQuery (int connfd, const std::unordered_map<std::string, int>& actions) {
+    fprintf(stderr, "Got here");
+    // Read the received message/query itself
+    char buff     [MAXLINE];
+    char readbuff [MAXLINE];
     int result = read(connfd, readbuff, MAXLINE);
     if (result < 1) {
         perror("read failed");
         exit(5);
     }
-    // Break up the client's request based on API-defined formatting
+    // Break up the client's query based on API-defined formatting
     std::string query = readbuff;
     int space = query.find(' ');
     int newline = query.find('\n');
     int fieldLength = newline - space - 1;
     std::string action = query.substr(0, space);
     std::string field = query.substr(space + 1, fieldLength);
-    // Determine which action to take using the query map
+    // Determine which action to take using the query mapping
     auto itr = actions.find(action);
     int actionID = (itr != actions.end()) ? itr->second : 0;
     switch (actionID) {
@@ -50,7 +54,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd);       break;
         default:                                                                   break;
     }
-    // 7. Close the connection
+    // Close the connection
     close(connfd);
 }
 
@@ -59,30 +63,29 @@ int main() {
     std::unordered_map<std::string, int> actions;
     initAPIMapping(actions);
 
-    // 0. Init variables for sockets
+    // Initialize variables for sockets
     int    listenfd, connfd;     // Unix file descriptors
     struct sockaddr_in servaddr; // Note C use of struct
-    char   buff[MAXLINE];
 
-    // 1. Create the socket
+    // Create the socket
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("Unable to create a socket");
         exit(1);
     }
 
-    // 2. Set up the socket address struct (specify IPv4, IP addresses, and port #)
+    // Set up the socket address struct (specify IPv4, IP addresses, and port #)
     memset(&servaddr, 0, sizeof(servaddr));       // zero it.
     servaddr.sin_family      = AF_INET;           // Specify the family
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY); // specifies IPs we will service from
     servaddr.sin_port        = htons(PORT_NUM);   // daytime server port #
 
-    // 3. "Bind" that address object to our listening file descriptor
+    // "Bind" that address object to our listening file descriptor
     if (bind(listenfd, (SA *) &servaddr, sizeof(servaddr)) == -1) {
         perror("Unable to bind port");
         exit(2);
     }
 
-    // 4. Tell the system that we are going to use this socket for listening and request a queue length
+    // Tell the system that we are going to use this socket for listening and request a queue length
     if (listen(listenfd, LISTENQ) == -1) {
         perror("Unable to listen");
         exit(3);
@@ -90,13 +93,15 @@ int main() {
 
     // Loop forever to accept multiple connections/queries
     for ( ; ; ) {
-        // 5. Block until a Python server connects.
         fprintf(stderr, "Server awaiting connection...\n");
+        // Block until a Python server connects.
         if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
             perror("Connection Accept Failed");
             exit(4);
         }
         fprintf(stderr, "A Python client is connected!\n");
-        processQuery(connfd, actions, buff);
+        // Spin off a new thread to process the query of the current connection
+        std::thread newThread(processQuery, connfd, std::cref(actions));
+        newThread.join();
     }
 }
