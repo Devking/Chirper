@@ -495,39 +495,57 @@ void deleteFriendParse (int newline, const string& query, const string& username
 ///////////////////////////////////////////////////////////////////////////////
 
 // Check to make sure that the friends that this user has are all still valid
-void checkValidFriends (const string& fileName, std::mutex* userManifestMutex, std::mutex* mappingMutex,
+void checkValidFriends (const string& username, std::mutex* userManifestMutex, std::mutex* mappingMutex,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    ifstream mainFile(fileName.c_str());
-    if (mainFile) {
-        string temp;
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        int noFriends = atoi(temp.c_str());
-        vector<string> friendsList;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            friendsList.push_back(temp);
-        }
-        mainFile.close();
-        // Once you have the friends list, check if each is valid
-        for (int i = 0; i < friendsList.size(); i++) {
-            // If friend does not exist, then delete friend
-            if (!checkUser(friendsList[i], userManifestMutex)) {
-                deleteFriend(fileName, friendsList[i], mappingMutex, fileMutexes);
+    // Keep a vector of the friend names
+    vector<string> friendsList;
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        if (mainFile) {
+            // Get number of friends that this user has
+            string temp;
+            for (int i = 0; i < 3; i++) getline(mainFile, temp);
+            int noFriends = atoi(temp.c_str());
+            // Populate the vector of friend names
+            for (int i = 0; i < noFriends; i++) {
+                getline(mainFile, temp);
+                friendsList.push_back(temp);
             }
+            mainFile.close();
         }
+        // Release the lock to access the user file
+        fileMutexes[username]->unlock();        
     }
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
+
+    // Once you have the friend names, check if each is valid
+    for (int i = 0; i < friendsList.size(); i++) {
+        // If friend does not exist, then delete friend
+        if (!checkUser(friendsList[i], userManifestMutex))
+            deleteFriend(username, friendsList[i], mappingMutex, fileMutexes);
+    }
+
 }
 
 // Populate the home page that a user sees when he/she/they logs in
 void populatePage (const string& username, char buff[MAXLINE], int connfd, 
                    char readbuff[MAXLINE], std::mutex* userManifestMutex, std::mutex* mappingMutex,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    string fileName = "users/" + username + ".txt";
     // This will first make sure that the friend's list is valid
-    checkValidFriends(fileName, userManifestMutex, mappingMutex, fileMutexes);
-    // Assumes file exist, loop through and send relevant data
+    checkValidFriends(username, userManifestMutex, mappingMutex, fileMutexes);
+    
+
+
+
+    string fileName = "users/" + username + ".txt";
     ifstream mainFile(fileName.c_str());
     string temp;
     // Send the second line of the file (email)

@@ -86,7 +86,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes); break;
         
-        default:                                                                   break;
+        default: break;
     }
 
     // Close the connection
