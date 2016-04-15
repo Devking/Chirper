@@ -103,7 +103,8 @@ bool checkFriend (const string& fileName, const string& friendName) {
     return false;
 }
 
-void checkFriendParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void checkFriendParse (int newline, const string& query, const string& username, 
+                       char buff[MAXLINE], int connfd) {
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
     string friendName = query.substr(newline+1, friendlength);
@@ -116,7 +117,8 @@ void checkFriendParse (int newline, const string& query, const string& username,
 // Query  5: CRTUSR (Create User)
 ///////////////////////////////////////////////////////////////////////////////
 
-void createUser (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void createUser (int newline, const string& query, const string& username, 
+                 char buff[MAXLINE], int connfd) {
     string returnString = "";
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
@@ -186,7 +188,8 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd) {
 // Query  7: CRTCHP (Create Chirp)
 ///////////////////////////////////////////////////////////////////////////////
 
-void createChirp (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void createChirp (int newline, const string& query, const string& username, 
+                  char buff[MAXLINE], int connfd) {
     string returnString = "";
     int secondnewline = query.find('\n', newline+1);
     int chirplength = secondnewline - newline - 1;
@@ -263,7 +266,8 @@ void deleteChirp (const string& fileName, int chirpid) {
     mainFile2 << fileString;
 }
 
-void deleteChirpParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void deleteChirpParse (int newline, const string& query, const string& username, 
+                       char buff[MAXLINE], int connfd) {
     string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
@@ -277,7 +281,8 @@ void deleteChirpParse (int newline, const string& query, const string& username,
 // Query  9: ADDFND (Add Friend)
 ///////////////////////////////////////////////////////////////////////////////
 
-void addFriend (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void addFriend (int newline, const string& query, const string& username, 
+                char buff[MAXLINE], int connfd) {
     string returnString = "";
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
@@ -340,7 +345,8 @@ void deleteFriend (const string& fileName, const string& friendName) {
     mainFile2 << fileString;
 }
 
-void deleteFriendParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void deleteFriendParse (int newline, const string& query, const string& username, 
+                        char buff[MAXLINE], int connfd) {
     string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
@@ -378,7 +384,8 @@ void checkValidFriends (const string& fileName) {
     }
 }
 
-void populatePage (const string& username, char buff[MAXLINE], int connfd, char readbuff[MAXLINE]) {
+void populatePage (const string& username, char buff[MAXLINE], int connfd, 
+                   char readbuff[MAXLINE]) {
     string fileName = "users/" + username + ".txt";
     // This will first make sure that the friend's list is valid
     checkValidFriends(fileName);
@@ -470,7 +477,8 @@ void moveUserUp (const string& fileName, int userid) {
     }
 }
 
-void moveUserUpParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void moveUserUpParse (int newline, const string& query, const string& username, 
+                      char buff[MAXLINE], int connfd) {
     string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
@@ -514,7 +522,8 @@ void moveUserDown (const string& fileName, int userid) {
     }
 }
 
-void moveUserDownParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+void moveUserDownParse (int newline, const string& query, const string& username, 
+                        char buff[MAXLINE], int connfd) {
     string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
