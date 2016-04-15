@@ -1,25 +1,7 @@
-Rob's Comments For Part 2:
+- deal with locks of files
 
-- little to no documentation/comments in your C++ code, try to comment more to explain appropriate chunks of code
-
-- overall pretty good use of functions, but just a few that are around 100 lines each. try to to keep functions down to around 30-50 lines
-
-- otherwise, good use of separate compilation. covered thorough set of edge cases, well documented README/api/explanation of message passing. keep up the work for future stages and try avoid being late not penalized for these:
+- try to to keep functions down to around 30-50 lines
+- try to comment more to explain appropriate chunks of code
 
 - include some sort of timestamps for messages
-- "friends" on social media tends to imply bidirectional relationship, you might want to rename your friends list to "following list"
 - consider having a way to see who you're being followed by
-
--------------------------------------------------------------------
-
-To Do Before Part 3:
-
-refactor query functions
-add comments
-add timestamps
-see followers
-
--------------------------------------------------------------------
-
-- deal with locks of files
-- provide documentation of "What shared data is being accessed by multiple threads and what you are doing to address potential race conditions."

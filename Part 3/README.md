@@ -335,17 +335,17 @@ Primarily, the shared resources in our system are the various text files that ar
 2. The user manifest text file (a list of all users registered in the system) 
 3. Each of the individual user information text files (there's one file per user)
 
-In order to protect the email manifest text file and the user manifest text file, *we have one mutex for each file that must be acquired in order to read from or write to each*. We never attempt to hold both of these locks at the same time. These locks are initialized in the `dataserver.cpp` file, as seen below:
+In order to protect the email manifest text file and the user manifest text file, *we have one mutex for each file that must be acquired in order to read from or write to each. We never attempt to hold both of these locks at the same time, so that deadlocks will never occur.* These locks are initialized in the `dataserver.cpp` file, as seen below:
 
     std::mutex userManifestMutex;  // Create mutex for the user manifest text file
     std::mutex emailManifestMutex; // Create mutex for the email manifest text file
 
-As for each individual user information text file, we make use of an unordered map that maps user names (string) to mutex pointers. For each user file that exists, we will have a mutex on the heap that corresponds to each user file. *In order to read or write from that user file, our system must acquire that mutex on the heap.* We will never hold more than one user's lock at a time, so that deadlocks will never occur. The unordered map is initialized in the `dataserver.cpp` file, as seen below:
+As for each individual user information text file, we make use of an unordered map that maps user names (string) to mutex pointers. For each user file that exists, we will have a mutex on the heap that corresponds to each user file. *In order to read or write from that user file, our system must acquire that mutex on the heap. We will never hold more than one user's lock at a time, so that deadlocks will never occur.* The unordered map is initialized in the `dataserver.cpp` file, as seen below:
 
     // Create unordered map for mapping user files to mutexes
     std::unordered_map<std::string, std::mutex*> fileMutexes;
 
-Of course, since users can be created and deleted, the unordered map itself is a shared resource as well. Thus, *we also have a mutex for the unordered map*--in order to access or modify the unordered map, this mutex must first be acquired. In any query where this mutex is needed, we will enforce the rule that this mutex must be acquired *first*. By enforcing this ordering, we avoid the possibility of deadlocking. This mutex for the unordered map is initialized in the `dataserver.cpp` file, as seen below:
+Of course, since users can be created and deleted, the unordered map itself is a shared resource as well. Thus, *we also have a mutex for the unordered map*&ndash;in order to access or modify the unordered map, this mutex must first be acquired. In any query where this mutex is needed, we will enforce the rule that this mutex must be acquired *first*. By enforcing this ordering, we avoid the possibility of deadlocking. This mutex for the unordered map is initialized in the `dataserver.cpp` file, as seen below:
 
     std::mutex mappingMutex;       // Create mutex for locking the unordered map
 
