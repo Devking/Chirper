@@ -43,11 +43,11 @@ To run the data server, run the following in the terminal:
 
 `make run`
 
-This command is defined in the `makefile` within this directory. It compiles the data server (written in C++11), creates an executable, and runs it. The data server will run on `localhost:9000`.
+This command is defined in the `makefile` within this directory. It compiles the data server (written in C++11), creates an executable (`./dataserver`), and runs it. The data server will run on `localhost:9000`.
 
 Afterwards, start the web server by running the following in terminal:
 
-`python main.py`
+`python webserver.py`
 
 This will run the web server on `localhost:8000`. To access the application, open your favorite browser and visit the following address:
 
@@ -126,9 +126,7 @@ A single newline (`\n`) separates each piece of information in the user data fil
 
 ## Queries
 
-In order for the Python web server to communicate with the C++11 data server, messages are passed between the two servers via TCP/IPv4 sockets.
-
-When the Python web server begins, it establishes a *single persistent connection* to the C++11 data server. Our application will persist this connection as long as both servers are running, and send all messages (which are unencrypted at the moment) over this single connection.
+In order for the Python web server to communicate with the C++11 data server, messages are passed between the two servers via TCP/IPv4 sockets. **One connection is established per query from the web server to the data server.** That is, when the Python web server needs to perform a query (such as checking the validity of a password), it will establish a new connection to the web server. For every query, there is one connection, which is always closed by the data server.
 
 All queries and responses between the two servers follow the specific format of our Chirper Query API, which is described below.
 
@@ -154,7 +152,7 @@ A query is described as any message sent from the Python web server to the C++11
 	      12 |     MOVEUP | Move Friend Up
 	      13 |     MOVEDN | Move Friend Down
 
-All queries are represented by a 6-character query code. Within `api_mapping.h`, we translate each query code to a query number, which our `server.cpp` script uses for a switch statement to decide what query to process.
+All queries are represented by a 6-character query code. Within `mappings.h`, we translate each query code to a query number, which our `server.cpp` script uses for a switch statement to decide what query to process.
 
 All queries follow the same format, which is represented below:
 
@@ -319,10 +317,36 @@ Note: friendid corresponds to the index of the friend on the page.
 
 # 3. Multithreading and Locks
 
+This section details the multithreading and locking functionality added in Part 3 of our project.
+
 ## 3.1 Multithreading
 
-One thread to handle each client query.
+Because one connection is established per client query, our data server can very easily be multithreaded. Every time a connection has been established by a client, the data server will spin off a new thread to work on that specific query, using the unique file descriptor for that connection. The thread is immediately detached so that it can perform work on its own, concurrently as the main system goes back to wait for a new connection.
+
+In short, each connection corresponds to a single query, and each connection/query is processed by a separate thread to achieve very fine-grained concurrency. Each of these threads will do the message parsing, processing, and connection closing on its own.
 
 ## 3.2 Locks
 
-Overview: Three locks on the stack and a variety of locks on the heap.
+In order to allow these threads to work concurrently *and safely*, we have implemented a (relatively) simple system of locks to prevent race conditions from occuring due to multithreading.
+
+Primarily, the shared resources in our system are the various text files that are accessed by different queries. There are a multitude of text files that must be protected. We must protect:
+
+1. The email manifest text file (a list of all e-mails registered in the system)
+2. The user manifest text file (a list of all users registered in the system) 
+3. Each of the individual user information text files (there's one file per user)
+
+In order to protect the email manifest text file and the user manifest text file, *we have one mutex for each file that must be acquired in order to read from or write to each*. We never attempt to hold both of these locks at the same time. These locks are initialized in the `dataserver.cpp` file, as seen below:
+
+    std::mutex userManifestMutex;  // Create mutex for the user manifest text file
+    std::mutex emailManifestMutex; // Create mutex for the email manifest text file
+
+As for each individual user information text file, we make use of an unordered map that maps user names (string) to mutex pointers. For each user file that exists, we will have a mutex on the heap that corresponds to each user file. *In order to read or write from that user file, our system must acquire that mutex on the heap.* We will never hold more than one user's lock at a time, so that deadlocks will never occur. The unordered map is initialized in the `dataserver.cpp` file, as seen below:
+
+    // Create unordered map for mapping user files to mutexes
+    std::unordered_map<std::string, std::mutex*> fileMutexes;
+
+Of course, since users can be created and deleted, the unordered map itself is a shared resource as well. Thus, *we also have a mutex for the unordered map*--in order to access or modify the unordered map, this mutex must first be acquired. In any query where this mutex is needed, we will enforce the rule that this mutex must be acquired *first*. By enforcing this ordering, we avoid the possibility of deadlocking. This mutex for the unordered map is initialized in the `dataserver.cpp` file, as seen below:
+
+    std::mutex mappingMutex;       // Create mutex for locking the unordered map
+
+By making use of these three mutexes on the stack and multiple mutexes on the heap, we guarantee the safety of our shared resources. Our system also acquires and releases locks in a manner that avoids deadlocks and retains a somewhat fine-grained level of concurrency. Threads are only blocked when two queries that access/modify the same text file or the unordered map are performed. Of course, since the processing of our queries is extremely quick (and typically never requires more than acquiring one lock at a time), the blocking time is extremely minimal in our system, while promising maximal concurrency from our multiple threads.

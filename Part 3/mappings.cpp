@@ -1,4 +1,4 @@
-#include "api_mapping.h"
+#include "mappings.h"
 
 #include <unordered_map>
 #include <string>
@@ -6,7 +6,7 @@
 #include <unistd.h> // write
 
 // A mapping to whitelist possible queries defined by the API
-// Macros are defined in the api_mapping.h header
+// Macros are defined in the mappings.h header
 void initAPIMapping (std::unordered_map<std::string, int>& actions) {
     actions["CHKEML"] = CHKEML;
     actions["CHKUSR"] = CHKUSR;
@@ -21,6 +21,12 @@ void initAPIMapping (std::unordered_map<std::string, int>& actions) {
     actions["POPLAT"] = POPLAT;
     actions["MOVEUP"] = MOVEUP;
     actions["MOVEDN"] = MOVEDN;
+}
+
+// Before the server even creates the socket, it needs to make sure that we have a lock
+// for every user text file that already exists in the system
+void initMutexMapping (std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    
 }
 
 // Send a message over the network

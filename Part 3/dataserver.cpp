@@ -10,11 +10,12 @@
 #include <sys/socket.h>  // socket, AF_INET, SOCK_STREAM, bind, listen, accept
 #include <netinet/in.h>  // servaddr, INADDR_ANY, htons
 
+#include "mappings.h"
+#include "queries.h"
+
 #include <string>
 #include <unordered_map>
-#include "api_mapping.h"
 #include <functional>
-#include "queries.h"
 
 #include <thread>
 #include <mutex>
@@ -68,6 +69,8 @@ int main() {
 
     // Create unordered map for mapping user files to mutexes
     std::unordered_map<std::string, std::mutex*> fileMutexes;
+    initMutexMapping(fileMutexes);
+
     std::mutex mappingMutex;       // Create mutex for locking the unordered map
     std::mutex userManifestMutex;  // Create mutex for the user manifest text file
     std::mutex emailManifestMutex; // Create mutex for the email manifest text file
@@ -100,7 +103,7 @@ int main() {
         exit(3);
     }
 
-    // Loop forever to accept multiple connections/queries
+    // Loop forever to accept multiple connection (one connection per query)
     for ( ; ; ) {
         fprintf(stderr, "Server awaiting connection...\n");
 

@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <mutex>
 
 #define MAXLINE  4096    // max text line length
 #define SA       struct sockaddr
@@ -23,7 +24,8 @@
 #define MOVEUP 12
 #define MOVEDN 13
 
-void initAPIMapping (std::unordered_map<std::string, int>& actions);
-void sendMessage (const std::string& returnString, char buff[MAXLINE], int connfd);
+void initAPIMapping   (std::unordered_map<std::string, int>& actions);
+void initMutexMapping (std::unordered_map<std::string, std::mutex*>& fileMutexes);
+void sendMessage      (const std::string& returnString, char buff[MAXLINE], int connfd);
 
 #endif

@@ -2,7 +2,7 @@
 // Code written by Wells Lucas Santo and Patrick Kingchatchaval
 
 #include "queries.h"
-#include "api_mapping.h"
+#include "mappings.h"
 
 #include <string>
 #include <fstream>
