@@ -586,46 +586,63 @@ void populatePage (const string& username, char buff[MAXLINE], int connfd,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Move a user up on our following list
-void moveUserUp (const string& username, int userid) {
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    if (userid > 0 && userid < noFriends) {
-        string user;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (i == userid-1)
-                user = temp;
-            else if (i == userid)
-                fileString += temp + "\n" + user + "\n";
-            else
+void moveUserUp (const string& username, int userid, std::mutex* mappingMutex,
+                 std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        // Read through the current user file
+        string fileString = "";
+        string temp;
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+        // Get number of friends
+        int noFriends = atoi(temp.c_str());
+        // Rearrange the order of the friends list
+        if (userid > 0 && userid < noFriends) {
+            string user;
+            for (int i = 0; i < noFriends; i++) {
+                getline(mainFile, temp);
+                if (i == userid-1)
+                    user = temp;
+                else if (i == userid)
+                    fileString += temp + "\n" + user + "\n";
+                else
+                    fileString += temp + "\n";
+            }
+            while (getline(mainFile, temp))
                 fileString += temp + "\n";
+            mainFile.close();
+            ofstream mainFile2(fileName.c_str());
+            mainFile2 << fileString;
         }
-        while (getline(mainFile, temp))
-            fileString += temp + "\n";
-        mainFile.close();
-        ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
+        // Release the lock to access the user->mutex map
+        fileMutexes[username]->unlock();
     }
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
 }
 
 // Driver function for moving a user up on the following list
 void moveUserUpParse (int newline, const string& query, const string& username, 
-                      char buff[MAXLINE], int connfd) {
+                      char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                      std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Parse the query and get the userid to move up
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     // Perform move up on the userid
-    moveUserUp(username, userid);
+    moveUserUp(username, userid, mappingMutex, fileMutexes);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -633,44 +650,58 @@ void moveUserUpParse (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Move a user down on our following list
-void moveUserDown (const string& username, int userid) {
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    if (userid > -1 && userid < noFriends - 1) {
-        string user;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (i == userid)
-                user = temp;
-            else if (i == userid + 1)
-                fileString += temp + "\n" + user + "\n";
-            else
-                fileString += temp += "\n";
+void moveUserDown (const string& username, int userid, std::mutex* mappingMutex,
+                   std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        string fileString = "";
+        string temp;
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+        int noFriends = atoi(temp.c_str());
+        if (userid > -1 && userid < noFriends - 1) {
+            string user;
+            for (int i = 0; i < noFriends; i++) {
+                getline(mainFile, temp);
+                if (i == userid)
+                    user = temp;
+                else if (i == userid + 1)
+                    fileString += temp + "\n" + user + "\n";
+                else
+                    fileString += temp += "\n";
+            }
+             while (getline(mainFile, temp))
+                fileString += temp + "\n";
+            mainFile.close();
+            ofstream mainFile2(fileName.c_str());
+            mainFile2 << fileString;
         }
-         while (getline(mainFile, temp))
-            fileString += temp + "\n";
-        mainFile.close();
-        ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
+        // Release the lock to access the user->mutex map
+        fileMutexes[username]->unlock();
     }
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
 }
 
 // Driver function for moving a user down on the following list
 void moveUserDownParse (int newline, const string& query, const string& username, 
-                        char buff[MAXLINE], int connfd) {
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Parse the query and get the userid to move down
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     // Perform move down on the userid
-    moveUserDown(username, userid);
+    moveUserDown(username, userid, mappingMutex, fileMutexes);
 }

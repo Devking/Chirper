@@ -70,13 +70,17 @@ void populatePage      (const std::string& username, char buff[MAXLINE], int con
                         std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query 12: MOVEUP (Move Friend Up)
-void moveUserUp        (const std::string& fileName, int userid);
+void moveUserUp        (const std::string& fileName, int userid, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 void moveUserUpParse   (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query 13: MOVEDN (Move Friend Down)
-void moveUserDown      (const std::string& fileName, int userid);
+void moveUserDown      (const std::string& fileName, int userid, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 void moveUserDownParse (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 #endif
