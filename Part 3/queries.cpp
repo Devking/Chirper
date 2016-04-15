@@ -542,61 +542,76 @@ void populatePage (const string& username, char buff[MAXLINE], int connfd,
     // This will first make sure that the friend's list is valid
     checkValidFriends(username, userManifestMutex, mappingMutex, fileMutexes);
     
-
-
-
-    string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    string temp;
-    // Send the second line of the file (email)
-    getline(mainFile, temp);
-    getline(mainFile, temp);
-    temp += "\n";
-    sendMessage(temp, buff, connfd);
-    // Get the number of friends
-    getline(mainFile, temp);
-    int noFriends = atoi(temp.c_str());
-    temp += "\n";
-    sendMessage(temp, buff, connfd);
-    // Keep track of list of friends
-    vector<string> friendsList;
-    for (int i = 0; i < noFriends; i++) {
-        getline(mainFile, temp);
-        friendsList.push_back(temp);
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        string temp;
+        // Send the second line of the file (email)
+        for (int i = 0; i < 2; i++) getline(mainFile, temp);
         temp += "\n";
         sendMessage(temp, buff, connfd);
-    }
-    getline(mainFile, temp);
-    int noChirps = atoi(temp.c_str());
-    temp += "\n";
-    sendMessage(temp, buff, connfd);
-    // Send this user's own chirps
-    for (int i = 0; i < noChirps; i++) {
+        // Get the number of friends
         getline(mainFile, temp);
-        temp += "\n";
-        sendMessage(temp, buff, connfd);
-    }
-    mainFile.close();
-    // Go through the friends list and send the chirps of each friend
-    for (int i = 0; i < friendsList.size(); i++) {
-        string friendFileName = "users/" + friendsList[i] + ".txt";
-        ifstream friendFile(friendFileName.c_str());
-        for (int j = 0; j < 3; j++) getline(friendFile, temp);
         int noFriends = atoi(temp.c_str());
-        for (int k = 0; k < noFriends; k++) getline(friendFile, temp);
-        // Get number of chirps
-        getline(friendFile, temp);
         temp += "\n";
         sendMessage(temp, buff, connfd);
-        int noChirps = atoi(temp.c_str());
-        // Send this friend's chirps
-        for (int m = 0; m < noChirps; m++) {
-            getline(friendFile, temp);
+        // Keep track of list of friends
+        vector<string> friendsList;
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            friendsList.push_back(temp);
             temp += "\n";
             sendMessage(temp, buff, connfd);
         }
-        friendFile.close();
+        // Get the number of chirps
+        getline(mainFile, temp);
+        int noChirps = atoi(temp.c_str());
+        temp += "\n";
+        sendMessage(temp, buff, connfd);
+        // Send this user's own chirps
+        for (int i = 0; i < noChirps; i++) {
+            getline(mainFile, temp);
+            temp += "\n";
+            sendMessage(temp, buff, connfd);
+        }
+        mainFile.close();
+        // Release the lock to access the user file
+        fileMutexes[username]->unlock();
+        // Go through the friends list and send the chirps of each friend
+        for (int i = 0; i < friendsList.size(); i++) {
+            // Get the lock to access this friend's file
+            fileMutexes[friendsList[i]]->lock();
+            // Access this user's file
+            string friendFileName = "users/" + friendsList[i] + ".txt";
+            ifstream friendFile(friendFileName.c_str());
+            // Parse through the file to get to the chirps
+            for (int j = 0; j < 3; j++) getline(friendFile, temp);
+            int noFriends = atoi(temp.c_str());
+            for (int k = 0; k < noFriends; k++) getline(friendFile, temp);
+            // Get number of chirps
+            getline(friendFile, temp);
+            temp += "\n";
+            sendMessage(temp, buff, connfd);
+            int noChirps = atoi(temp.c_str());
+            // Send this friend's chirps
+            for (int m = 0; m < noChirps; m++) {
+                getline(friendFile, temp);
+                temp += "\n";
+                sendMessage(temp, buff, connfd);
+            }
+            friendFile.close();
+            // Release the lock to access this friend's file
+            fileMutexes[friendsList[i]]->unlock();
+        }
     }
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
