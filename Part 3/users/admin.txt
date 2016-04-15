@@ -1,8 +1,7 @@
 pass
 admin@admin.com
-2
+1
 bob
-test
 2
 Feel the Bern!
 Rob is a very cool guy!

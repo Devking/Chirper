@@ -1,5 +1,5 @@
 all:
-	@g++ -std=c++11 dataserver.cpp mappings.cpp queries.cpp -o dataserver
+	@g++ -std=c++11 -pthread dataserver.cpp mappings.cpp queries.cpp -o dataserver
 	@echo "Files compiled successfully. 'dataserver' executable created."
 
 clean:
