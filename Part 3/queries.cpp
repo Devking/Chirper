@@ -541,7 +541,6 @@ void populatePage (const string& username, char buff[MAXLINE], int connfd,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // This will first make sure that the friend's list is valid
     checkValidFriends(username, userManifestMutex, mappingMutex, fileMutexes);
-    
     // Get the lock to access the user->mutex map
     mappingMutex->lock();
     // Check if the user is still in the map
