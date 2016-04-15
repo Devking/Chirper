@@ -1,4 +1,4 @@
-// Implementation of possible queries to be processed by the data server
+// Implementation of queries to be processed by the data server
 // Code written by Wells Lucas Santo and Patrick Kingchatchaval
 
 #include "queries.h"
@@ -7,10 +7,34 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <cstdio>   // remove (file)
+#include <cstdio>   // remove() file
 using namespace std;
 
-// Check if a user exists in the user manifest file
+///////////////////////////////////////////////////////////////////////////////
+// Query  1: CHKEML (Check Email)
+///////////////////////////////////////////////////////////////////////////////
+
+void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd) {
+    string returnString = "";
+    ifstream emailFile("manifest/email.txt");
+    if (!emailFile) {
+        ofstream emailFile("manifest/email.txt");
+        returnString += "NO";
+    } else {
+        string email;
+        bool foundEmail = false;
+        while (getline(emailFile, email, ',')) 
+            if (email == emailToFind) foundEmail = true;
+        returnString += foundEmail ? "YES" : "NO";
+    }
+    emailFile.close();
+    sendMessage(returnString, buff, connfd);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Query  2: CHKUSR (Check User)
+///////////////////////////////////////////////////////////////////////////////
+
 bool checkUser (const string& username) {
     ifstream userFile("manifest/user.txt");
     // If user manifest file does not exist, make it
@@ -30,6 +54,31 @@ bool checkUser (const string& username) {
     userFile.close();
     return false;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Query  3: CHKPWD (Check Password)
+///////////////////////////////////////////////////////////////////////////////
+
+void checkPassword (int newline, const string& query, const string& username, 
+                    char buff[MAXLINE], int connfd) {
+    string returnString = "NO";
+    int secondnewline = query.find('\n', newline+1);
+    int passwordlength = secondnewline - newline - 1;
+    string password = query.substr(newline+1, passwordlength);
+    string fileName = "users/" + username + ".txt";
+    ifstream mainFile(fileName.c_str());
+    if (mainFile) {
+        string filePassword;
+        getline(mainFile, filePassword);
+        if (filePassword == password) returnString = "YES";
+    }
+    mainFile.close();
+    sendMessage(returnString, buff, connfd);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Query  4: CHKFND (Check Friend)
+///////////////////////////////////////////////////////////////////////////////
 
 bool checkFriend (const string& fileName, const string& friendName) {
     ifstream mainFile(fileName.c_str());
@@ -54,170 +103,45 @@ bool checkFriend (const string& fileName, const string& friendName) {
     return false;
 }
 
-void deleteFriend (const string& fileName, const string& friendName) {
+void checkFriendParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
+    int secondnewline = query.find('\n', newline+1);
+    int friendlength = secondnewline - newline - 1;
+    string friendName = query.substr(newline+1, friendlength);
+    string fileName = "users/" + username + ".txt";
     ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    int noFriends = atoi(temp.c_str());
-    fileString += to_string(noFriends - 1) + "\n";
-    for (int i = 0; i < noFriends; i++) {
-        getline(mainFile, temp);
-        if (temp != friendName) fileString += temp + "\n";
-    }
-    while (getline(mainFile, temp))
-        fileString += temp + "\n";
-    mainFile.close();
-    ofstream mainFile2(fileName.c_str());
-    mainFile2 << fileString;
+    sendMessage(checkFriend(fileName, friendName)?"YES":"NO", buff, connfd);
 }
 
-void checkValidFriends (const string& fileName) {
-    ifstream mainFile(fileName.c_str());
-    if (mainFile) {
-        string temp;
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        getline(mainFile, temp);
-        int noFriends = atoi(temp.c_str());
-        vector<string> friendsList;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            friendsList.push_back(temp);
-        }
-        mainFile.close();
-        // Once you have the friends list, check if each is valid
-        for (int i = 0; i < friendsList.size(); i++) {
-            // If friend does not exist, then delete friend
-            if (!checkUser(friendsList[i])) {
-                deleteFriend(fileName, friendsList[i]);
-            }
-        }
-    }
-}
+///////////////////////////////////////////////////////////////////////////////
+// Query  5: CRTUSR (Create User)
+///////////////////////////////////////////////////////////////////////////////
 
-void deleteChirp (const string& fileName, int chirpid) {
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    for (int i = 0; i < noFriends; i++) {
-        getline(mainFile, temp);
-        fileString += temp + "\n";
-    }
-    getline(mainFile, temp);
-    int noChirps = atoi(temp.c_str());
-    fileString += to_string(noChirps - 1) + "\n";
-    for (int i = 0; i < noChirps; i++) {
-        getline(mainFile, temp);
-        if (i != chirpid) fileString += temp + "\n";
-    }
-    mainFile.close();
-    ofstream mainFile2(fileName.c_str());
-    mainFile2 << fileString;
-}
-
-void moveUserUp (const string& fileName, int userid) {
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    if (userid > 0 && userid < noFriends) {
-        string user;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (i == userid-1)
-                user = temp;
-            else if (i == userid)
-                fileString += temp + "\n" + user + "\n";
-            else
-                fileString += temp + "\n";
-        }
-        while (getline(mainFile, temp))
-            fileString += temp + "\n";
-        mainFile.close();
-        ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
-    }
-}
-
-void moveUserDown (const string& fileName, int userid) {
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    if (userid > -1 && userid < noFriends - 1) {
-        string user;
-        for (int i = 0; i < noFriends; i++) {
-            getline(mainFile, temp);
-            if (i == userid)
-                user = temp;
-            else if (i == userid + 1)
-                fileString += temp + "\n" + user + "\n";
-            else
-                fileString += temp += "\n";
-        }
-         while (getline(mainFile, temp))
-            fileString += temp + "\n";
-        mainFile.close();
-        ofstream mainFile2(fileName.c_str());
-        mainFile2 << fileString;
-    }
-}
-
-void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd) {
+void createUser (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
     string returnString = "";
-    ifstream emailFile("manifest/email.txt");
-    if (!emailFile) {
-        ofstream emailFile("manifest/email.txt");
-        returnString += "NO";
-    } else {
-        string email;
-        bool foundEmail = false;
-        while (getline(emailFile, email, ',')) if (email == emailToFind) foundEmail = true;
-        returnString += foundEmail ? "YES" : "NO";
-    }
-    emailFile.close();
-    sendMessage(returnString, buff, connfd);
-}
-
-void checkPassword (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
-    string returnString = "NO";
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
     string password = query.substr(newline+1, passwordlength);
+    int thirdnewline = query.find('\n', secondnewline+1);
+    int emaillength = thirdnewline - secondnewline - 1;
+    string email = query.substr(secondnewline+1, emaillength);
     string fileName = "users/" + username + ".txt";
-    ifstream mainFile(fileName.c_str());
-    if (mainFile) {
-        string filePassword;
-        getline(mainFile, filePassword);
-        if (filePassword == password) returnString = "YES";
-    }
-    mainFile.close();
+    ofstream mainFile(fileName.c_str());
+    mainFile << password << "\n";
+    mainFile << email << "\n";
+    mainFile << "0\n0\n";
+    ofstream mailFile("manifest/email.txt", ios_base::app);
+    mailFile << email << ",";
+    mailFile.close();
+    ofstream userFile("manifest/user.txt", ios_base::app);
+    userFile << username << ",";
+    userFile.close();
+    returnString += "YES";
     sendMessage(returnString, buff, connfd);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Query  6: DELUSR (Delete User)
+///////////////////////////////////////////////////////////////////////////////
 
 void deleteUser (const string& username, char buff[MAXLINE], int connfd) {
     // Delete the file with the user
@@ -258,28 +182,9 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd) {
     sendMessage(returnString, buff, connfd);
 }
 
-void createUser (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
-    string returnString = "";
-    int secondnewline = query.find('\n', newline+1);
-    int passwordlength = secondnewline - newline - 1;
-    string password = query.substr(newline+1, passwordlength);
-    int thirdnewline = query.find('\n', secondnewline+1);
-    int emaillength = thirdnewline - secondnewline - 1;
-    string email = query.substr(secondnewline+1, emaillength);
-    string fileName = "users/" + username + ".txt";
-    ofstream mainFile(fileName.c_str());
-    mainFile << password << "\n";
-    mainFile << email << "\n";
-    mainFile << "0\n0\n";
-    ofstream mailFile("manifest/email.txt", ios_base::app);
-    mailFile << email << ",";
-    mailFile.close();
-    ofstream userFile("manifest/user.txt", ios_base::app);
-    userFile << username << ",";
-    userFile.close();
-    returnString += "YES";
-    sendMessage(returnString, buff, connfd);
-}
+///////////////////////////////////////////////////////////////////////////////
+// Query  7: CRTCHP (Create Chirp)
+///////////////////////////////////////////////////////////////////////////////
 
 void createChirp (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
     string returnString = "";
@@ -327,13 +232,35 @@ void createChirp (int newline, const string& query, const string& username, char
     sendMessage(returnString, buff, connfd);
 }
 
-void checkFriendParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
-    int secondnewline = query.find('\n', newline+1);
-    int friendlength = secondnewline - newline - 1;
-    string friendName = query.substr(newline+1, friendlength);
-    string fileName = "users/" + username + ".txt";
+///////////////////////////////////////////////////////////////////////////////
+// Query  8: DELCHP (Delete Chirp)
+///////////////////////////////////////////////////////////////////////////////
+
+void deleteChirp (const string& fileName, int chirpid) {
     ifstream mainFile(fileName.c_str());
-    sendMessage(checkFriend(fileName, friendName)?"YES":"NO", buff, connfd);
+    string fileString = "";
+    string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    int noFriends = atoi(temp.c_str());
+    for (int i = 0; i < noFriends; i++) {
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+    }
+    getline(mainFile, temp);
+    int noChirps = atoi(temp.c_str());
+    fileString += to_string(noChirps - 1) + "\n";
+    for (int i = 0; i < noChirps; i++) {
+        getline(mainFile, temp);
+        if (i != chirpid) fileString += temp + "\n";
+    }
+    mainFile.close();
+    ofstream mainFile2(fileName.c_str());
+    mainFile2 << fileString;
 }
 
 void deleteChirpParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
@@ -345,6 +272,10 @@ void deleteChirpParse (int newline, const string& query, const string& username,
     string temp = "YES";
     sendMessage(temp, buff, connfd);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// Query  9: ADDFND (Add Friend)
+///////////////////////////////////////////////////////////////////////////////
 
 void addFriend (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
     string returnString = "";
@@ -383,6 +314,32 @@ void addFriend (int newline, const string& query, const string& username, char b
     sendMessage(returnString, buff, connfd);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Query 10: DELFND (Delete Friend)
+///////////////////////////////////////////////////////////////////////////////
+
+void deleteFriend (const string& fileName, const string& friendName) {
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
+    string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    int noFriends = atoi(temp.c_str());
+    fileString += to_string(noFriends - 1) + "\n";
+    for (int i = 0; i < noFriends; i++) {
+        getline(mainFile, temp);
+        if (temp != friendName) fileString += temp + "\n";
+    }
+    while (getline(mainFile, temp))
+        fileString += temp + "\n";
+    mainFile.close();
+    ofstream mainFile2(fileName.c_str());
+    mainFile2 << fileString;
+}
+
 void deleteFriendParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
     string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
@@ -391,6 +348,34 @@ void deleteFriendParse (int newline, const string& query, const string& username
     deleteFriend(fileName, friendName);
     string temp = "YES";
     sendMessage(temp, buff, connfd);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Query 11: POPLAT (Populate Page)
+///////////////////////////////////////////////////////////////////////////////
+
+void checkValidFriends (const string& fileName) {
+    ifstream mainFile(fileName.c_str());
+    if (mainFile) {
+        string temp;
+        getline(mainFile, temp);
+        getline(mainFile, temp);
+        getline(mainFile, temp);
+        int noFriends = atoi(temp.c_str());
+        vector<string> friendsList;
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            friendsList.push_back(temp);
+        }
+        mainFile.close();
+        // Once you have the friends list, check if each is valid
+        for (int i = 0; i < friendsList.size(); i++) {
+            // If friend does not exist, then delete friend
+            if (!checkUser(friendsList[i])) {
+                deleteFriend(fileName, friendsList[i]);
+            }
+        }
+    }
 }
 
 void populatePage (const string& username, char buff[MAXLINE], int connfd, char readbuff[MAXLINE]) {
@@ -451,6 +436,40 @@ void populatePage (const string& username, char buff[MAXLINE], int connfd, char 
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Query 12: MOVEUP (Move Friend Up)
+///////////////////////////////////////////////////////////////////////////////
+
+void moveUserUp (const string& fileName, int userid) {
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
+    string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    int noFriends = atoi(temp.c_str());
+    if (userid > 0 && userid < noFriends) {
+        string user;
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            if (i == userid-1)
+                user = temp;
+            else if (i == userid)
+                fileString += temp + "\n" + user + "\n";
+            else
+                fileString += temp + "\n";
+        }
+        while (getline(mainFile, temp))
+            fileString += temp + "\n";
+        mainFile.close();
+        ofstream mainFile2(fileName.c_str());
+        mainFile2 << fileString;
+    }
+}
+
 void moveUserUpParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
     string fileName = "users/" + username + ".txt";
     int secondnewline = query.find('\n', newline+1);
@@ -459,6 +478,40 @@ void moveUserUpParse (int newline, const string& query, const string& username, 
     moveUserUp(fileName, userid);
     string temp = "YES";
     sendMessage(temp, buff, connfd);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Query 13: MOVEDN (Move Friend Down)
+///////////////////////////////////////////////////////////////////////////////
+
+void moveUserDown (const string& fileName, int userid) {
+    ifstream mainFile(fileName.c_str());
+    string fileString = "";
+    string temp;
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    getline(mainFile, temp);
+    fileString += temp + "\n";
+    int noFriends = atoi(temp.c_str());
+    if (userid > -1 && userid < noFriends - 1) {
+        string user;
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            if (i == userid)
+                user = temp;
+            else if (i == userid + 1)
+                fileString += temp + "\n" + user + "\n";
+            else
+                fileString += temp += "\n";
+        }
+         while (getline(mainFile, temp))
+            fileString += temp + "\n";
+        mainFile.close();
+        ofstream mainFile2(fileName.c_str());
+        mainFile2 << fileString;
+    }
 }
 
 void moveUserDownParse (int newline, const string& query, const string& username, char buff[MAXLINE], int connfd) {
