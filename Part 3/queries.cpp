@@ -328,42 +328,62 @@ void createChirp (int newline, const string& query, const string& username,
 // Query  8: DELCHP (Delete Chirp)
 ///////////////////////////////////////////////////////////////////////////////
 
-void deleteChirp (const string& fileName, int chirpid) {
-    ifstream mainFile(fileName.c_str());
-    string fileString = "";
-    string temp;
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    getline(mainFile, temp);
-    fileString += temp + "\n";
-    int noFriends = atoi(temp.c_str());
-    for (int i = 0; i < noFriends; i++) {
+// Delete a user's chirp
+void deleteChirp (const string& username, int chirpid, std::mutex* mappingMutex,
+                  std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    // Get the lock to access the user->mutex map
+    mappingMutex->lock();
+    // Check if the user is still in the map
+    if (fileMutexes.find(username) != fileMutexes.end()) {
+        // Get the lock to access the user file
+        fileMutexes[username]->lock();
+        // Open the user file
+        string fileName = "users/" + username + ".txt";
+        ifstream mainFile(fileName.c_str());
+        // Go through the file and copy over everything except the chirp to delete
+        string fileString = "";
+        string temp;
         getline(mainFile, temp);
         fileString += temp + "\n";
-    }
-    getline(mainFile, temp);
-    int noChirps = atoi(temp.c_str());
-    fileString += to_string(noChirps - 1) + "\n";
-    for (int i = 0; i < noChirps; i++) {
         getline(mainFile, temp);
-        if (i != chirpid) fileString += temp + "\n";
+        fileString += temp + "\n";
+        getline(mainFile, temp);
+        fileString += temp + "\n";
+        // Get number of friends, to go through friends list dynamically
+        int noFriends = atoi(temp.c_str());
+        for (int i = 0; i < noFriends; i++) {
+            getline(mainFile, temp);
+            fileString += temp + "\n";
+        }
+        getline(mainFile, temp);
+        int noChirps = atoi(temp.c_str());
+        fileString += to_string(noChirps - 1) + "\n";
+        // Copy everything except the chirp to delete
+        for (int i = 0; i < noChirps; i++) {
+            getline(mainFile, temp);
+            if (i != chirpid) fileString += temp + "\n";
+        }
+        mainFile.close();
+        // Overwrite the file, such that the chirp is deleted
+        ofstream mainFile2(fileName.c_str());
+        mainFile2 << fileString;
+        // Release the lock to access the user file
+        fileMutexes[username]->unlock();
     }
-    mainFile.close();
-    ofstream mainFile2(fileName.c_str());
-    mainFile2 << fileString;
+    // Release the lock to access the user->mutex map
+    mappingMutex->unlock();
 }
 
+// Driver function to delete a user's chirp
 void deleteChirpParse (int newline, const string& query, const string& username, 
-                       char buff[MAXLINE], int connfd) {
-    string fileName = "users/" + username + ".txt";
+                       char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                       std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+    // Parse the query to get the chirpid
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int chirpid = atoi(query.substr(newline+1, valuelength).c_str());
-    deleteChirp(fileName, chirpid);
-    string temp = "YES";
-    sendMessage(temp, buff, connfd);
+    // Delete the chirp based on the chirpid
+    deleteChirp(username, chirpid, mappingMutex, fileMutexes);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

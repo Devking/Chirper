@@ -68,9 +68,11 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         case CRTCHP: createChirp      (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes); break;
 
+        case DELCHP: deleteChirpParse (newline, query, field, buff, connfd,
+                                       mappingMutex, fileMutexes);       break;
 
 
-        case DELCHP: deleteChirpParse (newline, query, field, buff, connfd);       break;
+
         case ADDFND: addFriend        (newline, query, field, buff, connfd);       break;
         case DELFND: deleteFriendParse(newline, query, field, buff, connfd);       break;
         case POPLAT: populatePage     (field, buff, connfd, readbuff, userManifestMutex);             break;

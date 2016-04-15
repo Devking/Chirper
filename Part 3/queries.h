@@ -44,9 +44,11 @@ void createChirp       (int newline, const std::string& query, const std::string
                         std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query  8: DELCHP (Delete Chirp)
-void deleteChirp       (const std::string& fileName, int chirpid);
+void deleteChirp       (const std::string& fileName, int chirpid, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 void deleteChirpParse  (int newline, const std::string& query, const std::string& username, 
-                        char buff[MAXLINE], int connfd);
+                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
+                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
 
 // Query  9: ADDFND (Add Friend)
 void addFriend         (int newline, const std::string& query, const std::string& username, 
