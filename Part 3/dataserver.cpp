@@ -73,9 +73,13 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
         case ADDFND: addFriend        (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes); break;
+
+        case DELFND: deleteFriendParse(newline, query, field, buff, connfd,
+                                       mappingMutex, fileMutexes); break;
+
+        case POPLAT: populatePage     (field, buff, connfd, readbuff, userManifestMutex,
+                                       mappingMutex, fileMutexes); break;
         
-        case DELFND: deleteFriendParse(newline, query, field, buff, connfd);       break;
-        case POPLAT: populatePage     (field, buff, connfd, readbuff, userManifestMutex);             break;
         case MOVEUP: moveUserUpParse  (newline, query, field, buff, connfd);       break;
         case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd);       break;
         default:                                                                   break;
