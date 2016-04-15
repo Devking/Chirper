@@ -21,14 +21,5 @@ see followers
 
 -------------------------------------------------------------------
 
-Directions for Part 3:
-
-Given the tremendous popularity of our application, the back end is becoming overwhelmed and clients are beginning to complain about performance. To respond to these issues, we are reimplementing the back end using multi-threading, specifically C++'s multi-threading facilities.
-
-There will be data that is shared across threads. Be careful to both maximise concurrency while preventing race conditions.
-
-Documentation:
-
-Provide clear documentation describing:
-
-What shared data is being accessed by multiple threads and what you are doing to address potential race conditions.
+- deal with locks of files
+- provide documentation of "What shared data is being accessed by multiple threads and what you are doing to address potential race conditions."

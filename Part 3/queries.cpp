@@ -431,19 +431,16 @@ void populatePage (const string& username, char buff[MAXLINE], int connfd, char 
     for (int i = 0; i < friendsList.size(); i++) {
         string friendFileName = "users/" + friendsList[i] + ".txt";
         ifstream friendFile(friendFileName.c_str());
-        getline(friendFile, temp);
-        getline(friendFile, temp);
-        getline(friendFile, temp);
+        for (int j = 0; j < 3; j++) getline(friendFile, temp);
         int noFriends = atoi(temp.c_str());
-        for (int i = 0; i < noFriends; i++)
-            getline(friendFile, temp);
+        for (int k = 0; k < noFriends; k++) getline(friendFile, temp);
         // Get number of chirps
         getline(friendFile, temp);
         temp += "\n";
         sendMessage(temp, buff, connfd);
         int noChirps = atoi(temp.c_str());
         // Send this friend's chirps
-        for (int i = 0; i < noChirps; i++) {
+        for (int m = 0; m < noChirps; m++) {
             getline(friendFile, temp);
             temp += "\n";
             sendMessage(temp, buff, connfd);

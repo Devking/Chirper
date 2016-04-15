@@ -19,13 +19,12 @@
 
 // When a connection is accepted, each thread will perform this function to process the relevant query
 void processQuery (int connfd, const std::unordered_map<std::string, int>& actions) {
-    fprintf(stderr, "Got here");
     // Read the received message/query itself
     char buff     [MAXLINE];
     char readbuff [MAXLINE];
     int result = read(connfd, readbuff, MAXLINE);
     if (result < 1) {
-        perror("read failed");
+        perror("Read message failed");
         exit(5);
     }
     // Break up the client's query based on API-defined formatting
@@ -94,14 +93,16 @@ int main() {
     // Loop forever to accept multiple connections/queries
     for ( ; ; ) {
         fprintf(stderr, "Server awaiting connection...\n");
+
         // Block until a Python server connects.
         if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
             perror("Connection Accept Failed");
             exit(4);
         }
         fprintf(stderr, "A Python client is connected!\n");
+
         // Spin off a new thread to process the query of the current connection
         std::thread newThread(processQuery, connfd, std::cref(actions));
-        newThread.join();
+        newThread.detach();
     }
 }
