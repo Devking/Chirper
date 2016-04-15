@@ -2,10 +2,13 @@
 #define QUERIES
 
 #include <string>
+#include <mutex>
+
 #include "mappings.h"
 
 // Query  1: CHKEML (Check Email)
-void checkEmail        (const std::string& emailToFind, char buff[MAXLINE], int connfd);
+void checkEmail        (const std::string& emailToFind, char buff[MAXLINE], int connfd, 
+                        std::mutex* emailManifestMutex);
 
 // Query  2: CHKUSR (Check User)
 bool checkUser         (const std::string& username);

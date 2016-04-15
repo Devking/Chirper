@@ -43,7 +43,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     auto itr = actions.find(action);
     int actionID = (itr != actions.end()) ? itr->second : 0;
     switch (actionID) {
-        case CHKEML: checkEmail       (field, buff, connfd);                       break;
+        case CHKEML: checkEmail       (field, buff, connfd, emailManifestMutex);   break;
         case CHKUSR: sendMessage      (checkUser(field)?"YES":"NO", buff, connfd); break;
         case CHKPWD: checkPassword    (newline, query, field, buff, connfd);       break;
         case CHKFND: checkFriendParse (newline, query, field, buff, connfd);       break;

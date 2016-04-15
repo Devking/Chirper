@@ -8,27 +8,34 @@
 #include <fstream>
 #include <vector>
 #include <cstdio>   // remove() file
+#include <mutex>
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Query  1: CHKEML (Check Email)
 ///////////////////////////////////////////////////////////////////////////////
 
-void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd) {
-    string returnString = "";
+// Check if email already exists in the system
+void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd, 
+                 std::mutex* emailManifestMutex) {
+    // Obtain lock to access the email manifest file
+    emailManifestMutex->lock();
     ifstream emailFile("manifest/email.txt");
+    // If the email manifest file does not exist, create it
     if (!emailFile) {
         ofstream emailFile("manifest/email.txt");
-        returnString += "NO";
+        sendMessage("NO", buff, connfd);
+    // Otherwise, loop through the file to find if the email exists
     } else {
         string email;
         bool foundEmail = false;
         while (getline(emailFile, email, ',')) 
             if (email == emailToFind) foundEmail = true;
-        returnString += foundEmail ? "YES" : "NO";
+        sendMessage(foundEmail ? "YES" : "NO", buff, connfd);
     }
     emailFile.close();
-    sendMessage(returnString, buff, connfd);
+    // Release the email manifest file lock
+    emailManifestMutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
