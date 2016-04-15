@@ -13,10 +13,12 @@ using namespace std;
 // Check if a user exists in the user manifest file
 bool checkUser (const string& username) {
     ifstream userFile("manifest/user.txt");
+    // If user manifest file does not exist, make it
     if (!userFile) {
         ofstream userFile("manifest/user.txt");
         userFile.close();
         return false;
+    // Otherwise, we will loop through the file and check if the user exists
     } else {
         string user;
         while (getline(userFile, user, ','))

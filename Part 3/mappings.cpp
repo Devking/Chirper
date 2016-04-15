@@ -4,6 +4,8 @@
 #include <string>
 #include <string.h> // strlen
 #include <unistd.h> // write
+#include <fstream>
+#include <mutex>
 
 // A mapping to whitelist possible queries defined by the API
 // Macros are defined in the mappings.h header
@@ -26,7 +28,21 @@ void initAPIMapping (std::unordered_map<std::string, int>& actions) {
 // Before the server even creates the socket, it needs to make sure that we have a lock
 // for every user text file that already exists in the system
 void initMutexMapping (std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    
+    // Open the user manifest file. 
+    // A mutex is not needed, since this happens before the multithreading.
+    std::ifstream userFile("manifest/user.txt");
+    // If user manifest file does not exist, make it.
+    if (!userFile) {
+        std::ofstream userFile("manifest/user.txt");
+        userFile.close();
+    // Otherwise, loop through the user file and add each user to the map
+    } else {
+        std::string user;
+        while (getline(userFile, user, ',')) {
+            fileMutexes[user] = new std::mutex;
+        }
+    }
+    userFile.close();
 }
 
 // Send a message over the network
