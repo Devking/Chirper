@@ -430,7 +430,7 @@ void addFriend (int newline, const string& query, const string& username,
             mainFile2.close();
         }
         // Release the lock to access the user->mutex map
-        mappingMutex->unlock();
+        fileMutexes[username]->unlock();
     }
     // Release the lock to access the user->mutex map
     mappingMutex->unlock();
@@ -472,7 +472,7 @@ void deleteFriend (const string& username, const string& friendName, std::mutex*
         ofstream mainFile2(fileName.c_str());
         mainFile2 << fileString;
         // Release the lock to access the user->mutex map
-        mappingMutex->unlock();
+        fileMutexes[username]->unlock();
     }
     // Release the lock to access the user->mutex map
     mappingMutex->unlock();
@@ -494,6 +494,7 @@ void deleteFriendParse (int newline, const string& query, const string& username
 // Query 11: POPLAT (Populate Page)
 ///////////////////////////////////////////////////////////////////////////////
 
+// Check to make sure that the friends that this user has are all still valid
 void checkValidFriends (const string& fileName, std::mutex* userManifestMutex, std::mutex* mappingMutex,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     ifstream mainFile(fileName.c_str());
@@ -519,6 +520,7 @@ void checkValidFriends (const string& fileName, std::mutex* userManifestMutex, s
     }
 }
 
+// Populate the home page that a user sees when he/she/they logs in
 void populatePage (const string& username, char buff[MAXLINE], int connfd, 
                    char readbuff[MAXLINE], std::mutex* userManifestMutex, std::mutex* mappingMutex,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
@@ -583,7 +585,9 @@ void populatePage (const string& username, char buff[MAXLINE], int connfd,
 // Query 12: MOVEUP (Move Friend Up)
 ///////////////////////////////////////////////////////////////////////////////
 
-void moveUserUp (const string& fileName, int userid) {
+// Move a user up on our following list
+void moveUserUp (const string& username, int userid) {
+    string fileName = "users/" + username + ".txt";
     ifstream mainFile(fileName.c_str());
     string fileString = "";
     string temp;
@@ -613,22 +617,24 @@ void moveUserUp (const string& fileName, int userid) {
     }
 }
 
+// Driver function for moving a user up on the following list
 void moveUserUpParse (int newline, const string& query, const string& username, 
                       char buff[MAXLINE], int connfd) {
-    string fileName = "users/" + username + ".txt";
+    // Parse the query and get the userid to move up
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
-    moveUserUp(fileName, userid);
-    string temp = "YES";
-    sendMessage(temp, buff, connfd);
+    // Perform move up on the userid
+    moveUserUp(username, userid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Query 13: MOVEDN (Move Friend Down)
 ///////////////////////////////////////////////////////////////////////////////
 
-void moveUserDown (const string& fileName, int userid) {
+// Move a user down on our following list
+void moveUserDown (const string& username, int userid) {
+    string fileName = "users/" + username + ".txt";
     ifstream mainFile(fileName.c_str());
     string fileString = "";
     string temp;
@@ -658,13 +664,13 @@ void moveUserDown (const string& fileName, int userid) {
     }
 }
 
+// Driver function for moving a user down on the following list
 void moveUserDownParse (int newline, const string& query, const string& username, 
                         char buff[MAXLINE], int connfd) {
-    string fileName = "users/" + username + ".txt";
+    // Parse the query and get the userid to move down
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
-    moveUserDown(fileName, userid);
-    string temp = "YES";
-    sendMessage(temp, buff, connfd);
+    // Perform move down on the userid
+    moveUserDown(username, userid);
 }

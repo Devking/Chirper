@@ -1,10 +1,8 @@
 pass
 admin@admin.com
-1
+2
 bob
-5
-does this work
-test again
 test
-This is a test chirp.
+2
+Feel the Bern!
 Rob is a very cool guy!
