@@ -44,7 +44,8 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     int actionID = (itr != actions.end()) ? itr->second : 0;
     switch (actionID) {
         case CHKEML: checkEmail       (field, buff, connfd, emailManifestMutex);   break;
-        case CHKUSR: sendMessage      (checkUser(field)?"YES":"NO", buff, connfd); break;
+        case CHKUSR: sendMessage      (checkUser(field, userManifestMutex) ? "YES" : "NO", 
+                                       buff, connfd); break;
         case CHKPWD: checkPassword    (newline, query, field, buff, connfd);       break;
         case CHKFND: checkFriendParse (newline, query, field, buff, connfd);       break;
         case CRTUSR: createUser       (newline, query, field, buff, connfd);       break;
@@ -53,7 +54,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         case DELCHP: deleteChirpParse (newline, query, field, buff, connfd);       break;
         case ADDFND: addFriend        (newline, query, field, buff, connfd);       break;
         case DELFND: deleteFriendParse(newline, query, field, buff, connfd);       break;
-        case POPLAT: populatePage     (field, buff, connfd, readbuff);             break;
+        case POPLAT: populatePage     (field, buff, connfd, readbuff, userManifestMutex);             break;
         case MOVEUP: moveUserUpParse  (newline, query, field, buff, connfd);       break;
         case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd);       break;
         default:                                                                   break;

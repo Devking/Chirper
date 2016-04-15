@@ -42,24 +42,25 @@ void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd,
 // Query  2: CHKUSR (Check User)
 ///////////////////////////////////////////////////////////////////////////////
 
-bool checkUser (const string& username) {
+// Check if user already exists in the system
+bool checkUser (const string& username, std::mutex* userManifestMutex) {
+    // Obtain lock to access the user manifest file
+    userManifestMutex->lock();
     ifstream userFile("manifest/user.txt");
+    bool foundUser = false;
     // If user manifest file does not exist, make it
     if (!userFile) {
         ofstream userFile("manifest/user.txt");
-        userFile.close();
-        return false;
     // Otherwise, we will loop through the file and check if the user exists
     } else {
         string user;
         while (getline(userFile, user, ','))
-            if (user == username) {
-                userFile.close();
-                return true;
-            }
+            if (user == username) foundUser = true;
     }
     userFile.close();
-    return false;
+    // Release the user manifest file lock
+    userManifestMutex->unlock();
+    return foundUser;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -367,7 +368,7 @@ void deleteFriendParse (int newline, const string& query, const string& username
 // Query 11: POPLAT (Populate Page)
 ///////////////////////////////////////////////////////////////////////////////
 
-void checkValidFriends (const string& fileName) {
+void checkValidFriends (const string& fileName, std::mutex* userManifestMutex) {
     ifstream mainFile(fileName.c_str());
     if (mainFile) {
         string temp;
@@ -384,7 +385,7 @@ void checkValidFriends (const string& fileName) {
         // Once you have the friends list, check if each is valid
         for (int i = 0; i < friendsList.size(); i++) {
             // If friend does not exist, then delete friend
-            if (!checkUser(friendsList[i])) {
+            if (!checkUser(friendsList[i], userManifestMutex)) {
                 deleteFriend(fileName, friendsList[i]);
             }
         }
@@ -392,10 +393,10 @@ void checkValidFriends (const string& fileName) {
 }
 
 void populatePage (const string& username, char buff[MAXLINE], int connfd, 
-                   char readbuff[MAXLINE]) {
+                   char readbuff[MAXLINE], std::mutex* userManifestMutex) {
     string fileName = "users/" + username + ".txt";
     // This will first make sure that the friend's list is valid
-    checkValidFriends(fileName);
+    checkValidFriends(fileName, userManifestMutex);
     // Assumes file exist, loop through and send relevant data
     ifstream mainFile(fileName.c_str());
     string temp;

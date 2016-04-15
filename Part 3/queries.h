@@ -11,7 +11,7 @@ void checkEmail        (const std::string& emailToFind, char buff[MAXLINE], int 
                         std::mutex* emailManifestMutex);
 
 // Query  2: CHKUSR (Check User)
-bool checkUser         (const std::string& username);
+bool checkUser         (const std::string& username, std::mutex* userManifestMutex);
 
 // Query  3: CHKPWD (Check Password)
 void checkPassword     (int newline, const std::string& query, const std::string& username, 
@@ -48,9 +48,9 @@ void deleteFriendParse (int newline, const std::string& query, const std::string
                         char buff[MAXLINE], int connfd);
 
 // Query 11: POPLAT (Populate Page)
-void checkValidFriends (const std::string& fileName);
+void checkValidFriends (const std::string& fileName, std::mutex* userManifestMutex);
 void populatePage      (const std::string& username, char buff[MAXLINE], int connfd, 
-                        char readbuff[MAXLINE]);
+                        char readbuff[MAXLINE], std::mutex* userManifestMutex);
 
 // Query 12: MOVEUP (Move Friend Up)
 void moveUserUp        (const std::string& fileName, int userid);

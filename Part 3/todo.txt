@@ -1,7 +1,2 @@
-- deal with locks of files
-
-- try to to keep functions down to around 30-50 lines
-- try to comment more to explain appropriate chunks of code
-
 - include some sort of timestamps for messages
 - consider having a way to see who you're being followed by
