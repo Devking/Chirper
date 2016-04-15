@@ -7,11 +7,22 @@
 from flask import Flask, render_template, redirect, request, url_for, session
 import socket
 
-# Create the socket connection with our data server
+# Define the address and port of our data server
 host = 'localhost'
 port = 9000
-s = socket.socket()
-s.connect((host, port))
+
+# Send a message through a socket and receive a response
+def socketsendrecv(sendmsg):
+    s = socket.socket()
+    s.connect((host, port))
+    s.sendall(sendmsg)
+    returnstr = ''
+    nextrecvstr = s.recv(4096)
+    while nextrecvstr != '':
+        returnstr += nextrecvstr
+        nextrecvstr = s.recv(4096)
+    s.close()
+    return returnstr
 
 # Create the Flask object
 app = Flask(__name__)
@@ -34,8 +45,7 @@ def login():
         username = request.form['username']
 
         # Check if login is successful
-        s.sendall('CHKPWD ' + username + '\n' + request.form['password'] + '\n')
-        chkpwd = s.recv(4096)
+        chkpwd = socketsendrecv('CHKPWD ' + username + '\n' + request.form['password'] + '\n')
         if chkpwd == 'YES':
             # Add to current session
             session['username'] = username
@@ -73,15 +83,12 @@ def checkreg():
         if username == '' or request.form['password'] == '' or enteredemail == '':
             return render_template('register.html', emptyreg = True)
         # Check for duplicate user/email
-        s.sendall('CHKUSR ' + username + '\n')
-        chkusr = s.recv(4096)
-        s.sendall('CHKEML ' + enteredemail + '\n')
-        chkeml = s.recv(4096)
+        chkusr = socketsendrecv('CHKUSR ' + username + '\n')
+        chkeml = socketsendrecv('CHKEML ' + enteredemail + '\n')
         if chkusr == 'YES' or chkeml == 'YES':
             return render_template('register.html', regfail = True)
-        s.sendall('CRTUSR ' + username + '\n' + request.form['password'] + '\n'
+        socketsendrecv('CRTUSR ' + username + '\n' + request.form['password'] + '\n'
                   + enteredemail + '\n')
-        s.recv(4096)
         return render_template('regsuccess.html')
 
     # If someone landed here not on a POST request, send them back to register page
@@ -95,24 +102,25 @@ def home():
         return redirect(url_for('splash'))
 
     # Retrieve email and friend list
-    s.sendall('POPLAT ' + session['username'] + '\n')
-    retrievedemail = s.recv(4096)
-    s.sendall('\n')
+    alldata = socketsendrecv('POPLAT ' + session['username'] + '\n')
+    splitdata = alldata.split('\n')
+    index = 0
+    retrievedemail = splitdata[index]
+    index++
     retrievedfriends = []
-    for i in xrange(int(s.recv(4096))):
-        s.sendall('\n')
-        retrievedfriends.append(s.recv(4096))
-    s.sendall('\n')
+    for i in xrange(int(splitdata[index])):
+        index++
+        retrievedfriends.append(splitdata[index])
 
     # Retrieve chirps of this user
     allchirps = [{
                       'author': session['username'],
                       'chirps': []
                  }]
-    for j in xrange(int(s.recv(4096))):
-        s.sendall('\n')
-        allchirps[0]['chirps'].append(s.recv(4096))
-    s.sendall('\n')
+    index++
+    for j in xrange(int(splitdata[index])):
+        index++
+        allchirps[0]['chirps'].append(splitdata[index])
 
     # Retrieve chirps of user's friends
     for k in xrange(len(retrievedfriends)):
@@ -120,10 +128,10 @@ def home():
                               'author': retrievedfriends[k],
                               'chirps': []
                          })
-        for l in xrange(int(s.recv(4096))):
-            s.sendall('\n')
-            allchirps[k + 1]['chirps'].append(s.recv(4096))
-        s.sendall('\n')
+        index++
+        for l in xrange(int(splitdata[index])):
+            index++
+            allchirps[k + 1]['chirps'].append(splitdata[index])
 
     # Otherwise, generate the home page
     return render_template('home.html',
@@ -143,8 +151,7 @@ def postchirp():
     if request.method == 'POST':
         # Check for empty chirp before posting
         if request.form['chirp'].strip() != '':
-            s.sendall('CRTCHP ' + session['username'] + '\n' + request.form['chirp'] + '\n')
-            s.recv(4096)
+            socketsendrecv('CRTCHP ' + session['username'] + '\n' + request.form['chirp'] + '\n')
         else:
             return redirect(url_for('home', emptychirp = True))
     return redirect(url_for('home'))
@@ -154,8 +161,7 @@ def postchirp():
 def deletechirp(chirp_id):
     # Make sure that if the user types in the URL, the chirp_id is a valid integer
     if 'username' in session and chirp_id.isdigit():
-        s.sendall('DELCHP ' + session['username'] + '\n' + chirp_id + '\n')
-        s.recv(4096)
+        socketsendrecv('DELCHP ' + session['username'] + '\n' + chirp_id + '\n')
     return redirect(url_for('home'))
 
 # Adding a friend
@@ -169,45 +175,38 @@ def addfriend():
         if request.form['friend'] == session['username']:
             return redirect(url_for('home', addyourself = True))
         # Check for friend name being a valid user
-        s.sendall('CHKUSR ' + request.form['friend'] + '\n')
-        chkusr = s.recv(4096)
+        chkusr = socketsendrecv('CHKUSR ' + request.form['friend'] + '\n')
         if chkusr == 'NO':
             return redirect(url_for('home', friendnotfound = True))
         # Check for friend already added
-        s.sendall('CHKFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
-        chkfnd = s.recv(4096)
+        chkfnd = socketsendrecv('CHKFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
         if chkfnd == 'YES':
             return redirect(url_for('home', alreadyfriends = True))
         # Add friend
-        s.sendall('ADDFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
-        s.recv(4096)
+        socketsendrecv('ADDFND ' + session['username'] + '\n' + request.form['friend'] + '\n')
     return redirect(url_for('home'))
 
 # Unfollow a friend
 @app.route('/unfollow/<user>')
 def unfollow(user):
     if 'username' in session:
-        s.sendall('CHKFND ' + session['username'] + '\n' + user + '\n')
-        chkfnd = s.recv(4096)
+        chkfnd = socketsendrecv('CHKFND ' + session['username'] + '\n' + user + '\n')
         if chkfnd == 'YES':
-            s.sendall('DELFND ' + session['username'] + '\n' + user + '\n')
-            s.recv(4096)
+            socketsendrecv('DELFND ' + session['username'] + '\n' + user + '\n')
     return redirect(url_for('home'))
 
 # Move a friend up the list
 @app.route('/moveup/<user_id>')
 def moveup(user_id):
     if 'username' in session and user_id.isdigit():
-        s.sendall('MOVEUP ' + session['username'] + '\n' + user_id + '\n')
-        s.recv(4096)
+        socketsendrecv('MOVEUP ' + session['username'] + '\n' + user_id + '\n')
     return redirect(url_for('home'))
 
 # Move a friend down the list
 @app.route('/movedown/<user_id>')
 def movedown(user_id):
     if 'username' in session and user_id.isdigit():
-        s.sendall('MOVEDN ' + session['username'] + '\n' + user_id + '\n')
-        s.recv(4096)
+        socketsendrecv('MOVEDN ' + session['username'] + '\n' + user_id + '\n')
     return redirect(url_for('home'))
 
 # Logout
@@ -221,7 +220,7 @@ def logout():
 def deleteaccount():
     deletesuccess = False
     if 'username' in session:
-        s.sendall('DELUSR ' + session['username'] + '\n')
+        socketsendrecv('DELUSR ' + session['username'] + '\n')
         session.clear()
         deletesuccess = True
     return redirect(url_for('splash', deletedaccount = deletesuccess))
@@ -231,6 +230,3 @@ app.secret_key = '\xbby\x1b\x90\x93v\x97LGK\x8f\xeaE\x1c\xd8\xd2Q\x8e\xe0z\x8d\x
 
 # Run the Flask application
 app.run('localhost', 8000, debug = False)
-
-# Close the socket connection
-s.close()
