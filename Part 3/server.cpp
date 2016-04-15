@@ -16,6 +16,44 @@
 #include "api_mapping.h"
 #include "queries.h"
 
+void processQuery (int connfd, const std::unordered_map<std::string, int>& actions, char buff [MAXLINE]) {
+    // 6. Read the query from this client
+    char readbuff[MAXLINE];
+    int result = read(connfd, readbuff, MAXLINE);
+    if (result < 1) {
+        perror("read failed");
+        exit(5);
+    }
+    // Break up the client's request based on API-defined formatting
+    std::string query = readbuff;
+    int space = query.find(' ');
+    int newline = query.find('\n');
+    int fieldLength = newline - space - 1;
+    std::string action = query.substr(0, space);
+    std::string field = query.substr(space + 1, fieldLength);
+    // Determine which action to take using the query map
+    auto itr = actions.find(action);
+    int actionID = (itr != actions.end()) ? itr->second : 0;
+    switch (actionID) {
+        case CHKEML: checkEmail       (field, buff, connfd);                       break;
+        case CHKUSR: sendMessage      (checkUser(field)?"YES":"NO", buff, connfd); break;
+        case CHKPWD: checkPassword    (newline, query, field, buff, connfd);       break;
+        case CHKFND: checkFriendParse (newline, query, field, buff, connfd);       break;
+        case CRTUSR: createUser       (newline, query, field, buff, connfd);       break;
+        case DELUSR: deleteUser       (field, buff, connfd);                       break;
+        case CRTCHP: createChirp      (newline, query, field, buff, connfd);       break;
+        case DELCHP: deleteChirpParse (newline, query, field, buff, connfd);       break;
+        case ADDFND: addFriend        (newline, query, field, buff, connfd);       break;
+        case DELFND: deleteFriendParse(newline, query, field, buff, connfd);       break;
+        case POPLAT: populatePage     (field, buff, connfd, readbuff);             break;
+        case MOVEUP: moveUserUpParse  (newline, query, field, buff, connfd);       break;
+        case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd);       break;
+        default:                                                                   break;
+    }
+    // 7. Close the connection
+    close(connfd);
+}
+
 int main() {
     // Get API mapping for query codes
     std::unordered_map<std::string, int> actions;
@@ -50,51 +88,15 @@ int main() {
         exit(3);
     }
 
-    // Loop forever for 
+    // Loop forever to accept multiple connections/queries
     for ( ; ; ) {
-        // 5. Block until the Python server connects.
-        //**// Future: Take the connfd and pass that into a "processQuery" function that a new thread works on
+        // 5. Block until a Python server connects.
         fprintf(stderr, "Server awaiting connection...\n");
         if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
             perror("Connection Accept Failed");
             exit(4);
         }
         fprintf(stderr, "A Python client is connected!\n");
-
-        // 6. Read the query from this client
-        char readbuff[MAXLINE];
-        int result = read(connfd, readbuff, MAXLINE);
-        if (result < 1) {
-            perror("read failed");
-            exit(5);
-        }
-        // Break up the client's request based on API-defined formatting
-        std::string query = readbuff;
-        int space = query.find(' ');
-        int newline = query.find('\n');
-        int fieldLength = newline - space - 1;
-        std::string action = query.substr(0, space);
-        std::string field = query.substr(space + 1, fieldLength);
-        // Determine which action to take using the query map
-        auto itr = actions.find(action);
-        int actionID = (itr != actions.end()) ? itr->second : 0;
-        switch (actionID) {
-            case CHKEML: checkEmail       (field, buff, connfd);                       break;
-            case CHKUSR: sendMessage      (checkUser(field)?"YES":"NO", buff, connfd); break;
-            case CHKPWD: checkPassword    (newline, query, field, buff, connfd);       break;
-            case CHKFND: checkFriendParse (newline, query, field, buff, connfd);       break;
-            case CRTUSR: createUser       (newline, query, field, buff, connfd);       break;
-            case DELUSR: deleteUser       (field, buff, connfd);                       break;
-            case CRTCHP: createChirp      (newline, query, field, buff, connfd);       break;
-            case DELCHP: deleteChirpParse (newline, query, field, buff, connfd);       break;
-            case ADDFND: addFriend        (newline, query, field, buff, connfd);       break;
-            case DELFND: deleteFriendParse(newline, query, field, buff, connfd);       break;
-            case POPLAT: populatePage     (field, buff, connfd, readbuff);             break;
-            case MOVEUP: moveUserUpParse  (newline, query, field, buff, connfd);       break;
-            case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd);       break;
-            default:                                                                   break;
-        }
-        // 7. Close the connection
-        close(connfd);
+        processQuery(connfd, actions, buff);
     }
 }
