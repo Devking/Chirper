@@ -8,7 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <cstdio>   // remove
-#include <unistd.h> // read
+// #include <unistd.h> // read
 
 bool checkUser (const std::string& username) {
     std::ifstream userFile("manifest/user.txt");
@@ -401,29 +401,29 @@ void populatePage (const std::string& username, char buff[MAXLINE], int connfd, 
     getline(mainFile, temp);
     getline(mainFile, temp);
     sendMessage(temp, buff, connfd);
-    read(connfd, readbuff, MAXLINE);
+    // read(connfd, readbuff, MAXLINE);
     // Get the number of friends
     getline(mainFile, temp);
     int noFriends = atoi(temp.c_str());
     sendMessage(temp, buff, connfd);
-    read(connfd, readbuff, MAXLINE);
+    // read(connfd, readbuff, MAXLINE);
     // Keep track of list of friends
     std::vector<std::string> friendsList;
     for (int i = 0; i < noFriends; i++) {
         getline(mainFile, temp);
         friendsList.push_back(temp);
         sendMessage(temp, buff, connfd);
-        read(connfd, readbuff, MAXLINE);
+        // read(connfd, readbuff, MAXLINE);
     }
     getline(mainFile, temp);
     int noChirps = atoi(temp.c_str());
     sendMessage(temp, buff, connfd);
-    read(connfd, readbuff, MAXLINE);
+    // read(connfd, readbuff, MAXLINE);
     // Send my own chirps
     for (int i = 0; i < noChirps; i++) {
         getline(mainFile, temp);
         sendMessage(temp, buff, connfd);
-        read(connfd, readbuff, MAXLINE); // stuck
+        // read(connfd, readbuff, MAXLINE);
     }
     mainFile.close();
     // Go through the friends list and send the chirps of each friend
@@ -439,13 +439,13 @@ void populatePage (const std::string& username, char buff[MAXLINE], int connfd, 
         // Get number of chirps
         getline(friendFile, temp);
         sendMessage(temp, buff, connfd);
-        read(connfd, readbuff, MAXLINE);
+        // read(connfd, readbuff, MAXLINE);
         int noChirps = atoi(temp.c_str());
         // Send this friend's chirps
         for (int i = 0; i < noChirps; i++) {
             getline(friendFile, temp);
             sendMessage(temp, buff, connfd);
-            read(connfd, readbuff, MAXLINE);
+            // read(connfd, readbuff, MAXLINE);
         }
         friendFile.close();
     }

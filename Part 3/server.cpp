@@ -10,6 +10,7 @@
 #include <sys/socket.h>  // socket, AF_INET, SOCK_STREAM, bind, listen, accept
 #include <netinet/in.h>  // servaddr, INADDR_ANY, htons
 
+#include <thread>
 #include <string>
 #include <unordered_map>
 #include "api_mapping.h"
@@ -49,19 +50,18 @@ int main() {
         exit(3);
     }
 
-    // 5. Block until the Python server connects.
-    //**// Need to update this to take one connection per query
-    //**// Also spin off the thread once the connection is accepted?
-    //**// Pass a handling function to the thread which also takes the connfd int
-    fprintf(stderr, "Server awaiting connection...\n");
-    if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
-        perror("accept failed");
-        exit(4);
-    }
-    fprintf(stderr, "The Python client is connected!\n");
-
-    // 6. Wait for the client's query and process it
+    // Loop forever for 
     for ( ; ; ) {
+        // 5. Block until the Python server connects.
+        //**// Future: Take the connfd and pass that into a "processQuery" function that a new thread works on
+        fprintf(stderr, "Server awaiting connection...\n");
+        if ((connfd = accept(listenfd, (SA *) NULL, NULL)) == -1) {
+            perror("Connection Accept Failed");
+            exit(4);
+        }
+        fprintf(stderr, "A Python client is connected!\n");
+
+        // 6. Read the query from this client
         char readbuff[MAXLINE];
         int result = read(connfd, readbuff, MAXLINE);
         if (result < 1) {
@@ -94,8 +94,7 @@ int main() {
             case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd);       break;
             default:                                                                   break;
         }
+        // 7. Close the connection
+        close(connfd);
     }
-
-    // 7. Close the connection
-    close(connfd);
 }
