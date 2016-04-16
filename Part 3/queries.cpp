@@ -82,7 +82,7 @@ void checkPassword (int newline, const string& query, const string& username,
     // See if the user exists in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Obtain the lock to access the user file
-        fileMutexes.find(username)->second->lock();
+        fileMutexes[username]->lock();
         string fileName = "users/" + username + ".txt";
         ifstream mainFile(fileName.c_str());
         if (mainFile) {
@@ -92,7 +92,7 @@ void checkPassword (int newline, const string& query, const string& username,
         }
         mainFile.close();
         // Release the lock to access the user file
-        fileMutexes.find(username)->second->unlock();
+        fileMutexes[username]->unlock();
     }
     // Release the lock to access the user->mutex map
     mappingMutex->unlock();
@@ -113,7 +113,7 @@ bool checkFriend (const string& username, const string& friendName, std::mutex* 
     // See if the user exists in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Obtain the lock to access the user file
-        fileMutexes.find(username)->second->lock();
+        fileMutexes[username]->lock();
         string fileName = "users/" + username + ".txt";
         ifstream mainFile(fileName.c_str());
         if (mainFile) {
@@ -129,7 +129,7 @@ bool checkFriend (const string& username, const string& friendName, std::mutex* 
         }
         mainFile.close();
         // Release the lock to access the user file
-        fileMutexes.find(username)->second->unlock();
+        fileMutexes[username]->unlock();
     }
     // Release the lock to access the user->mutex map
     mappingMutex->unlock();
@@ -207,6 +207,20 @@ void createUser (int newline, const string& query, const string& username,
 void deleteUser (const string& username, char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                   std::unordered_map<std::string, std::mutex*>& fileMutexes,
                   std::mutex* emailManifestMutex, std::mutex* userManifestMutex) {
+    // Delete the username from the username text file (lock & unlock)
+    userManifestMutex->lock();
+    ifstream nameFile("manifest/user.txt");
+    string nameString = "";
+    if (nameFile) {
+        string temp;
+        while (getline(nameFile, temp, ','))
+            if (temp != username) nameString += temp + ",";
+    }
+    nameFile.close();
+    ofstream nameFile2("manifest/user.txt");
+    nameFile2 << nameString;
+    userManifestMutex->unlock();
+
     string email;
     // Get the lock to access the user->mutex map
     mappingMutex->lock();
@@ -247,20 +261,6 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd, std::mu
     mailFile2 << mailString;
     mailFile2.close();
     emailManifestMutex->unlock();
-
-    // Delete the username from the username text file (lock & unlock)
-    userManifestMutex->lock();
-    ifstream nameFile("manifest/user.txt");
-    string nameString = "";
-    if (nameFile) {
-        string temp;
-        while (getline(nameFile, temp, ','))
-            if (temp != username) nameString += temp + ",";
-    }
-    nameFile.close();
-    ofstream nameFile2("manifest/user.txt");
-    nameFile2 << nameString;
-    userManifestMutex->unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -555,17 +555,24 @@ void populatePage (const string& username, char buff[MAXLINE], int connfd,
         for (int i = 0; i < 2; i++) getline(mainFile, temp);
         temp += "\n";
         sendMessage(temp, buff, connfd);
-        // Get the number of friends
+        // Get the number of friends (before checking again)
         getline(mainFile, temp);
         int noFriends = atoi(temp.c_str());
-        temp += "\n";
-        sendMessage(temp, buff, connfd);
-        // Keep track of list of friends
+        // Check these friends still exist
         vector<string> friendsList;
         for (int i = 0; i < noFriends; i++) {
             getline(mainFile, temp);
-            friendsList.push_back(temp);
-            temp += "\n";
+            if (checkUser(temp, userManifestMutex))
+                friendsList.push_back(temp);
+            else
+                noFriends--;
+        }
+        // Update the number of friends and send this
+        string noFriendsString = to_string(noFriends) + "\n";
+        sendMessage(noFriendsString, buff, connfd);
+        // Send a list of the friends
+        for (int i = 0; i < friendsList.size(); i++) {
+            temp = friendsList[i] + "\n";
             sendMessage(temp, buff, connfd);
         }
         // Get the number of chirps
