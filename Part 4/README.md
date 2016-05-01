@@ -15,11 +15,12 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 	2. Queries
 	3. Query API
 		1. Query Descriptions
-3. **Multithreading and Locks**
+3. Multithreading and Locks
 	1. Multithreading
 	2. Locks
+4. **Replication**
 
-**For documentation on Part 3 of the Project, please jump to the "Multithreading and Locks" section of this README.**
+**For documentation on Part 4 of the Project, please jump to the "Replication" section of this README.**
 
 # 1. The Application Itself
 
@@ -332,7 +333,7 @@ In order to allow these threads to work concurrently *and safely*, we have imple
 Primarily, the shared resources in our system are the various text files that are accessed by different queries. There are a multitude of text files that must be protected. We must protect:
 
 1. The email manifest text file (a list of all e-mails registered in the system)
-2. The user manifest text file (a list of all users registered in the system) 
+2. The user manifest text file (a list of all users registered in the system)
 3. Each of the individual user information text files (there's one file per user)
 
 In order to protect the email manifest text file and the user manifest text file, *we have one mutex for each file that must be acquired in order to read from or write to each. We never attempt to hold both of these locks at the same time, so that deadlocks will never occur.* These locks are initialized in the `dataserver.cpp` file, as seen below:
@@ -350,3 +351,7 @@ Of course, since users can be created and deleted, the unordered map itself is a
     std::mutex mappingMutex;       // Create mutex for locking the unordered map
 
 By making use of these three mutexes on the stack and multiple mutexes on the heap, we guarantee the safety of our shared resources. Our system also acquires and releases locks in a manner that avoids deadlocks and retains a somewhat fine-grained level of concurrency. Threads are only blocked when two queries that access/modify the same text file or the unordered map are performed. Of course, since the processing of our queries is extremely quick (and typically never requires more than acquiring one lock at a time), the blocking time is extremely minimal in our system, while promising maximal concurrency from our multiple threads.
+
+# 4. Replication
+
+- to be added -
