@@ -23,7 +23,7 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 
 # 1. The Application Itself
 
-## 1.1 Dependencies
+## 1.1. Dependencies
 
 * Python 2.7.11
 * Python's Flask Package
@@ -75,9 +75,9 @@ and
 
 Because all data is stored in text files, the state of the application will be saved between executions of the server.
 
-# Under the Hood
+# 2. Under the Hood
 
-## Data Files
+## 2.1. Data Files
 
 Our data server uses two primary text files, and then one text file per user. The file structure is as follows:
 
@@ -99,7 +99,7 @@ Description of Files:
 
 Due to formatting specifications, **DO NOT manually modify any of these text files**, which may prevent the system from working correctly.
 
-### User Data File
+### 2.1.1. User Data File
 
 The formatting of the user data file is as follows:
 
@@ -124,13 +124,13 @@ A single newline (`\n`) separates each piece of information in the user data fil
 	Hello there!
 	This is a data file.
 
-## Queries
+## 2.2. Queries
 
 In order for the Python web server to communicate with the C++11 data server, messages are passed between the two servers via TCP/IPv4 sockets. **One connection is established per query from the web server to the data server.** That is, when the Python web server needs to perform a query (such as checking the validity of a password), it will establish a new connection to the web server. For every query, there is one connection, which is always closed by the data server.
 
 All queries and responses between the two servers follow the specific format of our Chirper Query API, which is described below.
 
-## Query API
+## 2.3. Query API
 
 A query is described as any message sent from the Python web server to the C++11 data server. All queries will expect at least one response message from the data server.
 
@@ -162,7 +162,7 @@ All queries follow the same format, which is represented below:
 
 The `[Main Field]` is a single parameter that every query must include. Some queries may pass extra data (described above as `[Optional Data Field]`, which is sent after a newline (`\n`).
 
-### Query Descriptions
+### 2.3.1. Query Descriptions
 
 Below, each query is described in further detail.
 
@@ -319,13 +319,13 @@ Note: friendid corresponds to the index of the friend on the page.
 
 This section details the multithreading and locking functionality added in Part 3 of our project.
 
-## 3.1 Multithreading
+## 3.1. Multithreading
 
 Because one connection is established per client query, our data server can very easily be multithreaded. Every time a connection has been established by a client, the data server will spin off a new thread to work on that specific query, using the unique file descriptor for that connection. The thread is immediately detached so that it can perform work on its own, concurrently as the main system goes back to wait for a new connection.
 
 In short, each connection corresponds to a single query, and each connection/query is processed by a separate thread to achieve very fine-grained concurrency. Each of these threads will do the message parsing, processing, and connection closing on its own.
 
-## 3.2 Locks
+## 3.2. Locks
 
 In order to allow these threads to work concurrently *and safely*, we have implemented a (relatively) simple system of locks to prevent race conditions from occuring due to multithreading.
 
