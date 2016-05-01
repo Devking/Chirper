@@ -1,0 +1,17 @@
+Current Assignment:
+
+Oh, no!!!! The server went down. Our client base is furious. We need to reimplement our back end to be more resilient, using replication.
+
+Documentation:
+
+Provide clear documentation describing:
+
+how the data is kept in synch across your replicas.
+how failure of one server is handled by the system.
+
+--------------------
+
+From long ago:
+
+- include some sort of timestamps for messages
+- consider having a way to see who you're being followed by
