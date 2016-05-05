@@ -6,22 +6,28 @@
 
 from flask import Flask, render_template, redirect, request, url_for, session
 import socket
+import select
 
 # Define the address and port of our data server
 host = 'localhost'
-port = 9000
+ports = [9000, 9100, 9200, 9300, 9400, 9500, 9600]
 
 # Send a message through a socket and receive a response
 def socketsendrecv(sendmsg):
-    s = socket.socket()
-    s.connect((host, port))
-    s.sendall(sendmsg)
+    sockets = []
+    for port in ports:
+        s = socket.socket()
+        s.connect((host, port))
+        s.sendall(sendmsg)
+        sockets.append(s)
+    readable, _, _ = select.select(sockets, [], [], 1)
     returnstr = ''
-    nextrecvstr = s.recv(4096)
+    nextrecvstr = readable[0].recv(4096)
     while nextrecvstr != '':
         returnstr += nextrecvstr
-        nextrecvstr = s.recv(4096)
-    s.close()
+        nextrecvstr = readable[0].recv(4096)
+    for s in sockets:
+        s.close()
     return returnstr
 
 # Create the Flask object
