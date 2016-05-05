@@ -11,11 +11,18 @@ how failure of one server is handled by the system.
 
 --------------------
 
+https://jaksa.wordpress.com/2009/05/01/active-and-passive-replication-in-distributed-systems/
+
+Python Web Server is the "front end"
+C++ Data Server is the "Replica Manager"
+
 Active Replication:
     - have many data servers all running at the same time
     - each data server must keep track of its own replicate of the information
+    - each data server must get the same information and respond in the same ways (Lamport's determinism)
     - have web server keep track of all possible data servers that can possibly be connected to (on different ports)
     - web server will send the *same* information to all active data servers
+        - Lamport calls this an *atomic broadcast*
 
     - what if a data server goes down?
         - kill it forever and don't deal with setting it back up
@@ -29,6 +36,14 @@ Active Replication:
         - however, we're not guaranteed on timing
 
     Q - who to *retrieve* data from? just one server?
+
+--------------------
+
+Things to Keep Track Of:
+
+- latency (should be relatively quick to access the data)
+- consistency (all data servers should have the same data)
+- network overhead (don't send too many messages)
 
 --------------------
 
