@@ -11,6 +11,27 @@ how failure of one server is handled by the system.
 
 --------------------
 
+Active Replication:
+    - have many data servers all running at the same time
+    - each data server must keep track of its own replicate of the information
+    - have web server keep track of all possible data servers that can possibly be connected to (on different ports)
+    - web server will send the *same* information to all active data servers
+
+    - what if a data server goes down?
+        - kill it forever and don't deal with setting it back up
+        - other option (better but more difficult): connect back to it, but need to update it since downtime
+
+    Q - web server needs to know which data servers are alive
+        - either poll for data servers, or have data servers send a heartbeat message
+
+    - server socket connections are done over TCP, so we're guaranteed in-order delivery to all data servers
+    - if the data server is still alive, we're guaranteed that it will receive all of the messages
+        - however, we're not guaranteed on timing
+
+    Q - who to *retrieve* data from? just one server?
+
+--------------------
+
 From long ago:
 
 - include some sort of timestamps for messages
