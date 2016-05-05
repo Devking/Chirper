@@ -10,22 +10,32 @@ import select
 
 # Define the address and port of our data server
 host = 'localhost'
-ports = [9000, 9100, 9200, 9300, 9400, 9500, 9600]
+# ports = [9000, 9100, 9200, 9300, 9400, 9500, 9600]
+ports = [9000, 9100, 9200]
 
 # Send a message through a socket and receive a response
 def socketsendrecv(sendmsg):
     sockets = []
     for port in ports:
         s = socket.socket()
-        s.connect((host, port))
+        try:
+            s.connect((host, port))
+        except:
+            print 'Exception Happened'
+            ports.remove(port)
+            continue
         s.sendall(sendmsg)
         sockets.append(s)
-    readable, _, _ = select.select(sockets, [], [], 1)
+    print ports
+    readable, _, _ = select.select(sockets, [], [])
+    print len(readable)
     returnstr = ''
-    nextrecvstr = readable[0].recv(4096)
-    while nextrecvstr != '':
-        returnstr += nextrecvstr
-        nextrecvstr = readable[0].recv(4096)
+    for s in readable:
+        returnstr = ''
+        nextrecvstr = s.recv(4096)
+        while nextrecvstr != '':
+            returnstr += nextrecvstr
+            nextrecvstr = s.recv(4096)
     for s in sockets:
         s.close()
     return returnstr

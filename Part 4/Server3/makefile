@@ -8,4 +8,4 @@ clean:
 	@echo "'dataserver' executable successfully removed."
 
 run: all
-	@./dataserver
+	@./dataserver 9200

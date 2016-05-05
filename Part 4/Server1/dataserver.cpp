@@ -21,8 +21,8 @@
 #include <mutex>
 
 // When a connection is accepted, each thread will perform this function to process the relevant query
-void processQuery (int connfd, const std::unordered_map<std::string, int>& actions, 
-                   std::unordered_map<std::string, std::mutex*>& fileMutexes, std::mutex* mappingMutex, 
+void processQuery (int connfd, const std::unordered_map<std::string, int>& actions,
+                   std::unordered_map<std::string, std::mutex*>& fileMutexes, std::mutex* mappingMutex,
                    std::mutex* userManifestMutex, std::mutex* emailManifestMutex) {
 
     // Read the received message/query itself
@@ -48,21 +48,21 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     switch (actionID) {
         case CHKEML: checkEmail       (field, buff, connfd, emailManifestMutex); break;
 
-        case CHKUSR: sendMessage      (checkUser(field, userManifestMutex) 
+        case CHKUSR: sendMessage      (checkUser(field, userManifestMutex)
                                        ? "YES" : "NO", buff, connfd);            break;
 
-        case CHKPWD: checkPassword    (newline, query, field, buff, connfd, 
+        case CHKPWD: checkPassword    (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case CHKFND: checkFriendParse (newline, query, field, buff, connfd, 
+        case CHKFND: checkFriendParse (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case CRTUSR: createUser       (newline, query, field, buff, connfd, 
-                                       mappingMutex, fileMutexes, 
+        case CRTUSR: createUser       (newline, query, field, buff, connfd,
+                                       mappingMutex, fileMutexes,
                                        emailManifestMutex, userManifestMutex);   break;
 
         case DELUSR: deleteUser       (field, buff, connfd,
-                                       mappingMutex, fileMutexes, 
+                                       mappingMutex, fileMutexes,
                                        emailManifestMutex, userManifestMutex);   break;
 
         case CRTCHP: createChirp      (newline, query, field, buff, connfd,
@@ -77,8 +77,8 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         case DELFND: deleteFriendParse(newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case POPLAT: populatePage     (field, buff, connfd, readbuff, 
-                                       userManifestMutex, mappingMutex, 
+        case POPLAT: populatePage     (field, buff, connfd, readbuff,
+                                       userManifestMutex, mappingMutex,
                                        fileMutexes);                             break;
 
         case MOVEUP: moveUserUpParse  (newline, query, field, buff, connfd,
@@ -86,7 +86,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
         case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
-        
+
         default:                                                                 break;
     }
 
@@ -94,7 +94,22 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     close(connfd);
 }
 
-int main() {
+// When running the server, you must specify the port to run it on
+int main(int argc, char* argv[]) {
+    // Check to see that a second parameter was specified
+    if (argc < 2) {
+        fprintf(stderr, "Not enough parameters specified! You must specify a port number. (e.g., './dataserver 9000')\n");
+        exit(5);
+    } else if (argc > 2) {
+        fprintf(stderr, "Too many parameters. Please only specify a port number.");
+        exit(6);
+    }
+
+    // Convert the second parameter (port number) to int
+    // This assumes a valid string was used
+    const int PORT_NUM = atoi(argv[1]);
+    fprintf(stderr, "Data server running on port %d...\n", PORT_NUM);
+
     // Get API mapping for query codes
     std::unordered_map<std::string, int> actions;
     initAPIMapping(actions);
@@ -147,7 +162,7 @@ int main() {
         fprintf(stderr, "A Python client is connected!\n");
 
         // Spin off a new thread to process the query of the current connection
-        std::thread newThread(processQuery, connfd, std::cref(actions), std::ref(fileMutexes), 
+        std::thread newThread(processQuery, connfd, std::cref(actions), std::ref(fileMutexes),
                               &mappingMutex, &userManifestMutex, &emailManifestMutex);
         newThread.detach();
     }

@@ -8,7 +8,6 @@
 #define MAXLINE  4096    // max text line length
 #define SA       struct sockaddr
 #define LISTENQ  1024    // 2nd argument to listen() -- size of listening queue
-#define PORT_NUM 9000
 
 #define CHKEML 1
 #define CHKUSR 2

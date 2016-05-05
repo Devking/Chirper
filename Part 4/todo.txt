@@ -47,6 +47,30 @@ Things to Keep Track Of:
 
 --------------------
 
+Book Solution:
+
+1 - front end multicasts request with unique identifier to replica managers
+    - must use totally ordered, reliable multicast
+        - order and reliability guaranteed by TCP
+        - what about multicast?
+    - do not request again until it receives a response
+
+2 - coordination - enforce total order
+
+3 - execution - RM's all process query identically
+
+4 - agreement - none needed!
+
+5 - response - ALL RM's send response
+    - FE takes first response it receives and discards the rest (uses identifier)
+    - all *must* send response, with identifier
+
+- has sequential consistency
+- relies on reliable multicast to ensure total order and same queries received at all RMs
+- front end's requests are served in FIFO order (since must wait for a response)
+
+--------------------
+
 From long ago:
 
 - include some sort of timestamps for messages
