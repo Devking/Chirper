@@ -36,9 +36,13 @@ def socketsendrecv(sendmsg):
     messqueue.append((msgnum, newmsg))
     print messqueue
     # Update list of un-acked messages to remove messages that everyone's acked
+    print 'GETTING MIN ACK'
     minack = min(portacks)
-    while messqueue[0][0] <= minack:
+    print 'MIN ACK', minack
+    print 'ACK # at front of mess queue', messqueue[0][0]
+    while len(messqueue) > 0 and messqueue[0][0] < minack:
         messqueue.pop(0)
+    print messqueue
     # Connect to sockets based on 'ports' list; remove dead servers from ports list
     sockets = []
     i = 0
@@ -56,15 +60,15 @@ def socketsendrecv(sendmsg):
             del portacks[i]
     print 'START THE MULTICAST'
     # Do the multicast/multireceive
-    return multicast(sockets, newmsg)
+    return multicast(sockets, newmsg, msgnum)
 
 # Do the multicast/multireceive
-def multicast(sockets, newmsg):
+def multicast(sockets, newmsg, msgnum):
     threads = []
     results = []
     for i in range(len(sockets)):
         print 'About to spin off a thread'
-        t = threading.Thread(target = singlesendrecv, args = (sockets[i], i, newmsg, results))
+        t = threading.Thread(target = singlesendrecv, args = (sockets[i], i, newmsg, msgnum, results))
         print 'Spun off the thread'
         threads.append(t)
         t.start()
@@ -75,16 +79,18 @@ def multicast(sockets, newmsg):
     print 'All threads have finished (or timedout)'
     print 'Below are the responses received'
     print results
-    # Assumes that something is returned
-    print 'The final result:'
-    print results[0]
+    # Assumes that at least someone returned the right answer
     return results[0]
 
 # Deal with one socket in the multicast/multireceive
-def singlesendrecv(thesocket, i, newmsg, results):
+def singlesendrecv(thesocket, i, newmsg, msgnum, results):
     print "Got into a thread for the socket", thesocket.getsockname()
     # Here, we need to check that this socket is updated with the latest messages
     # If not, we need to send the old messages first, before moving on
+    # Based on portacks[i], if portacks[i] + 1 < msgnum, then we need to send
+    # all the messages stored in the messqueue up to msgnum
+
+
 
     # Now that we're updated, send the new message
     print "Going to send:"
@@ -99,9 +105,18 @@ def singlesendrecv(thesocket, i, newmsg, results):
     try:
         nextrecvstr = thesocket.recv(4096)
         while nextrecvstr != '':
-            print 'nextrecvstr', nextrecvstr
             returnstr += nextrecvstr
-            nextrecvstr = thesocket.recv(4096)
+            print returnstr
+            # if we got the 'end' message, then don't keep asking to receive, and just move on
+            checkterminal = returnstr.split('\n\n\nR')
+            print checkterminal
+            if len(checkterminal) < 2 or checkterminal[1] != 'END':
+                print 'NEED TO KEEP READING'
+                nextrecvstr = thesocket.recv(4096)
+            else:
+                print 'FINISHED READING'
+                returnstr = checkterminal[0]
+                break
     # Catch the timeout! If we time out, close the socket and return from this function
     # This was checked and made sure to be correctly timing out
 
@@ -109,13 +124,11 @@ def singlesendrecv(thesocket, i, newmsg, results):
     # Need wait to check that received message is done
     except socket.timeout:
         print 'got a timeout!'
-        # Need to do a different check to see the end of the message was received
-        if returnstr == '':
-            thesocket.close()
-            return
+        thesocket.close()
+        return
     print 'got a response from the data server, though'
     # At the point, we know we received a response
-    # print returnstr
+    print returnstr
     # Get the message number from the returnstr and take it out of the message
     messagenumber = returnstr.split('\n')[0]
     print 'received message number', messagenumber

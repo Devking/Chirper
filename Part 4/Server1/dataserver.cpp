@@ -38,6 +38,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     char buff     [MAXLINE];
     char readbuff [MAXLINE];
     int result = read(connfd, readbuff, MAXLINE);
+    std::string terminationstring = "\n\n\nREND";
     if (result < 1) {
         perror("Read message failed");
         exit(5);
@@ -49,6 +50,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     int newline = query.find('\n');
     std::string msgnumstring = query.substr(0, newline);
     int msgnum = stoi(msgnumstring);
+    std::string sendnum = msgnum + "\n";
 
     // Based on the message number, will use the condition variable to wait until the correct
     // next message arrives
@@ -57,9 +59,10 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     // If the expected message number is higher than the current message, resend the response for that
     // message number and do nothing else
     if (expectedmsgnumber > msgnum) {
-        sendMessage(msgnum + "\n", buff, connfd);
+        sendMessage(sendnum, buff, connfd);
         oldresponseslock.lock();
         sendMessage(oldresponses[msgnum], buff, connfd);
+        sendMessage(terminationstring, buff, connfd);
         oldresponseslock.unlock();
         close(connfd);
         return;
@@ -75,6 +78,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     std::cout << "Got through for msg " << msgnum << std::endl;
 
     // First send the message number of this current message back to the client
+    // sendMessage(sendnum, buff, connfd);
     sendMessage("1\n", buff, connfd);
 
     // Start to process the query
@@ -134,6 +138,9 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
         default:                                                                 break;
     }
+
+    // Send termination string to notify web server that we're done sending the response
+    sendMessage(terminationstring, buff, connfd);
 
     std::cout << "The query was processed successfully." << std::endl;
 
