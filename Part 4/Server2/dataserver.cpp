@@ -19,8 +19,13 @@
 
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 
 #include <iostream>
+
+int expectedmsgnumber = 1;
+std::mutex msgnumlock;
+std::condition_variable totalorderwait;
 
 // When a connection is accepted, each thread will perform this function to process the relevant query
 void processQuery (int connfd, const std::unordered_map<std::string, int>& actions,
@@ -42,8 +47,22 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     int newline = query.find('\n');
     std::string msgnumstring = query.substr(0, newline);
     int msgnum = stoi(msgnumstring);
-    fprintf(stderr, "Message Number: %d\n", msgnum);
-    // Get the query itself
+
+    // Based on the message number, will use the condition variable to wait until the correct
+    // next message arrives
+    std::unique_lock<std::mutex> condlock(msgnumlock);
+    // If the expected message number is higher than the current message, just discard this message
+    if (expectedmsgnumber > msgnum) return;
+    // Stay here until the correct expectedmsgnum matches the current message number
+    while (expectedmsgnumber != msgnum) totalorderwait.wait(condlock);
+    // At this point, it means that the msgnum == expectedmsgnum
+    // Increment the expectedmsgnum and notify everyone else to check their condition again
+    std::cout << "Got through for msg " << msgnum << std::endl;
+    expectedmsgnumber++;
+    totalorderwait.notify_all();
+
+    // Start to process the query
+    // Firstnpack the query message itself
     query = query.substr(newline + 1);
     std::cout << query << std::endl;
     int space = query.find(' ');
