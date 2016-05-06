@@ -7,6 +7,7 @@
 from flask import Flask, render_template, redirect, request, url_for, session
 import socket
 import select
+import threading
 
 # Define the address and port of our data server
 host = 'localhost'
@@ -32,6 +33,7 @@ def socketsendrecv(sendmsg):
     print "Message Queue:", messqueue
     while messqueue[0][0] <= minack:
         messqueue.pop(0)
+    # Attempt to connect to existing sockets; remove dead servers from ports list
     sockets = []
     i = 0
     for i in xrange(len(ports) - 1, -1, -1):
@@ -40,22 +42,32 @@ def socketsendrecv(sendmsg):
             # Enforce timeouts for the socket
             s.settimeout(0.5)
             s.connect((host, ports[i]))
-            s.sendall(newmsg)
             sockets.append(s)
         except IOError:
             print 'Could not connect to web server at', ports[i]
             ports.remove(ports[i])
             portacks.remove(portacks[i])
+    # Some debugging printing
     print "Message Queue:", messqueue
     print "Port List To Access:", ports
     print "Port ACKS:", portacks
     print "Sockets List:"
     for s in sockets:
         print s.getsockname()
+    # Do the multicast/multireceive
+    return multicast(sockets, newmsg)
+
+# Do the multicast/multireceive
+def multicast(sockets, newmsg):
+    # To move to thread: Send current query to opened sockets
+    for s in sockets:
+        s.sendall(newmsg)
+    # To move to thread: Get response from opened sockets
     for i in xrange(len(sockets) - 1, -1, -1):
         print '---------------------'
         print 'READING FROM SOCKET:', sockets[i].getsockname()
         returnstr = ''
+        # Remember to deal with timeouts here
         nextrecvstr = sockets[i].recv(4096)
         while nextrecvstr != '':
             returnstr += nextrecvstr
@@ -65,7 +77,10 @@ def socketsendrecv(sendmsg):
         portacks[i] = portacks[i] + 1
         print '---------------------'
         sockets[i].close()
+    # Once the threads all finish or timeout, proceed
     return returnstr
+
+# Deal with one socket in the multicast/multireceive
 
 # Create the Flask object
 app = Flask(__name__)

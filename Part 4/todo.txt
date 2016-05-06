@@ -3,7 +3,7 @@ Current Issues:
 - assumption: servers that go down go down forever
     - no revival policy
 
-- still need to deal with select
+- threading to deal with multicast / multiresponse
 
 Things That Work:
 
