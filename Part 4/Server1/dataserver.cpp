@@ -23,13 +23,14 @@
 
 #include <iostream>
 
-int expectedmsgnumber = 1;
-std::mutex msgnumlock;
-std::condition_variable totalorderwait;
-std::unordered_map<int, std::string> oldresponses;
-std::mutex oldresponseslock;
+int expectedmsgnumber = 1; // Message number to enforce total ordering
+std::mutex msgnumlock;     // Lock to access / update expectedmsgnumber
+std::condition_variable totalorderwait; // Condition variable to enforce total ordering
 
-// When a connection is accepted, each thread will perform this function to process the relevant query
+std::unordered_map<int, std::string> oldresponses; // Keep track of unacked responses
+std::mutex oldresponseslock; // Lock to access 'oldresponses'
+
+// Different threads will run this function to process different queries
 void processQuery (int connfd, const std::unordered_map<std::string, int>& actions,
                    std::unordered_map<std::string, std::mutex*>& fileMutexes) {
 
@@ -43,44 +44,52 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         exit(5);
     }
 
-    // Break up the client's message based on API-defined formatting
+    // Break up the web server's message based on API-defined formatting
     std::string query = readbuff;
-    // Get the message number
+
+    // Get the message number of the received message
     int newline = query.find('\n');
     std::string msgnumstring = query.substr(0, newline);
     int msgnum = stoi(msgnumstring);
     std::string sendnum = std::to_string(msgnum) + "\n";
 
-    // Based on the message number, will use the condition variable to wait until the correct
-    // next message arrives
+    // Use condition variable to enforce total ordering of messages
     std::unique_lock<std::mutex> condlock(msgnumlock);
 
-    // If the expected message number is higher than the current message, resend the response for that
-    // message number and do nothing else
+    // Outdated message number received: resend the expected response we've stored
     if (expectedmsgnumber > msgnum) {
+        // Send old response with correct message number
         sendMessage(sendnum, buff, connfd);
         oldresponseslock.lock();
         sendMessage(oldresponses[msgnum], buff, connfd);
         sendMessage(terminationstring, buff, connfd);
         oldresponseslock.unlock();
+        // Wait for ACK from web server
+        result = read(connfd, readbuff, MAXLINE);
+        // If we got an ACK, be sure to remove from our responses storage
+        if (result < 1) {
+            perror("Read ACK failed; closing connection");
+        } else {
+            std::string ack = readbuff;
+            int endofline = ack.find('\n');
+            int acknumber = stoi(ack.substr(0, endofline));
+            oldresponseslock.lock();
+            if (oldresponses.find(acknumber) != oldresponses.end())
+                oldresponses.erase(acknumber);
+            oldresponseslock.unlock();
+        }
+        // Close the connection and return
         close(connfd);
         return;
     }
 
-    // If the msgnum is too high, then we need to wait here until the missing messages arrive at another thread
+    // Message number too large: Use condition variable to wait here until right message is processed
     while (expectedmsgnumber < msgnum) totalorderwait.wait(condlock);
 
-    // At this point, it means that the msgnum == expectedmsgnum
-    // We can start doing work on this query then
-
-    // Increment the expectedmsgnum and notify everyone else to check their condition again
-    // std::cout << "Got through for msg " << msgnum << std::endl;
-
-    // First send the message number of this current message back to the client
+    // Send the message number of this current message back to the client
     sendMessage(sendnum, buff, connfd);
 
     // Start to process the query
-    // Unpack the query message itself
     query = query.substr(newline + 1);
     std::cout << query << std::endl;
     int space = query.find(' ');
@@ -110,7 +119,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         default: break;
     }
 
-    // Send message all at once
+    // Send the expected response back to the web server
     sendMessage(messageToSend, buff, connfd);
 
     // Send termination string to notify web server that we're done sending the response
@@ -118,28 +127,27 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
     std::cout << "The query was processed successfully." << std::endl;
 
-    // Need to get what we'd return as a response message and add it to the old responses map
+    // Keep track of this response, in case it's needed again in the future
     oldresponseslock.lock();
     oldresponses[msgnum] = messageToSend;
     oldresponseslock.unlock();
 
+    // Wait for ACK from the web server to verify our response was received
     std::cout << "Now awaiting the ACK." << std::endl;
-    // Expect an ACK back from the web server to ensure that the message was received
-    // If the message was received, we remove it from the unordered_map of responses to remember
     result = read(connfd, readbuff, MAXLINE);
 
-    // Check to see if an ACK was actually received
-    // If not, we do nothing (don't increment the expectmsgnum, since we don't know they got our response)
+    // Check to see if an ACK was received
+    // If not, we do nothing and let the socket close
     if (result < 1) {
         perror("Read ACK failed; closing connection");
-    // If the ACK was received, update the expectedmsgnum
+    // If the ACK was received, update the next expected message number
     } else {
         std::string ack = readbuff;
         int endofline = ack.find('\n');
         int acknumber = stoi(ack.substr(0, endofline));
         std::cout << "Got ACK for " << acknumber << std::endl;
-        // Remove the ACKed message from the map of responses to remember
-        // This is because the ACK guarantees that the FE received our message
+        // If we received an ACK, that means the web server got our response;
+        // we therefore no longer need to store our response for future use
         oldresponseslock.lock();
         if (oldresponses.find(acknumber) != oldresponses.end())
             oldresponses.erase(acknumber);

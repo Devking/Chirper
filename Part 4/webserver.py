@@ -9,7 +9,7 @@ import socket
 import select
 import threading
 
-# Define the address and port of our data server
+# Define the address and ports of our data servers
 host = 'localhost'
 ports = [9000, 9100, 9200, 9300, 9400]
 
@@ -18,41 +18,43 @@ portacks = [0, 0, 0, 0, 0]
 messqueue = []
 msgnum = 0
 
-# Thread results lock
+# A lock for accessing the 'results' list
 resultslock = threading.Lock()
 
 # Send a message through a socket and receive a response
 def socketsendrecv(sendmsg):
     print '** BEGIN SOCKET SEND AND RECEIVE **'
-    # Increment message number
+    # Increment current message number
     global msgnum
     msgnum = msgnum + 1
-    print 'ABOUT TO SEND MSGNUM', msgnum
-    # Append msgnum to the front of the message to send
+    print 'ABOUT TO SEND MSG NUM:', msgnum
+    # Append message number to the front of the message to send
     newmsg = str(msgnum) + '\n' + sendmsg
-    print 'NEW MESSAGE:'
-    print newmsg
-    # Add current message to list of un-acked messages
+
+    # Add current message to list of un-acked messages, in case we need to resend
     messqueue.append((msgnum, newmsg))
     print messqueue
-    # Update list of un-acked messages to remove messages that everyone's acked
+
+    # Update list of un-acked messages to remove messages that everyone has acked
     print 'GETTING MIN ACK'
     minack = min(portacks)
     print 'MIN ACK', minack
     print 'ACK # at front of mess queue', messqueue[0][0]
     print 'remove front?', messqueue[0][0] < minack
+    # Right now this seems to keep popping everything off -- why?
+    #------------------------------------------------------------------
     while len(messqueue) > 0 and messqueue[0][0] < minack:
-        print "POPPING OFF FRONT OF QUEUE"
+        print "POPPING OFF FRONT OF QUEUE", messqueue[0][0]
         messqueue.pop(0)
     print messqueue
-    # Connect to sockets based on 'ports' list; remove dead servers from ports list
+    # Connect to sockets based on 'ports' list & remove dead servers from ports list
     sockets = []
     i = 0
     print 'CHECKING SOCKETS'
     for i in xrange(len(ports) - 1, -1, -1):
         try:
             s = socket.socket()
-            # Enforce timeouts for the socket
+            # Enforce timeouts for the socket!
             s.settimeout(1)
             s.connect((host, ports[i]))
             sockets.append(s)
@@ -61,84 +63,69 @@ def socketsendrecv(sendmsg):
             del ports[i]
             del portacks[i]
     print 'START THE MULTICAST'
-    # Do the multicast/multireceive
+    # Do the simultaneous, multithreaded multicast/multireceive
     return multicast(sockets, newmsg, msgnum)
 
-# Do the multicast/multireceive
+# Spin off threads to send the query to each data server
 def multicast(sockets, newmsg, msgnum):
     threads = []
     results = []
     for i in range(len(sockets)):
         print 'About to spin off a thread'
         t = threading.Thread(target = singlesendrecv, args = (sockets[i], i, newmsg, msgnum, results))
-        print 'Spun off the thread'
         threads.append(t)
         t.start()
     # Since we're working with timeouts, all of the threads will run and do work concurrently
-    # We will wait here until the timeouts happen, but using join
+    # We're guaranteed not to get stuck here due to enforced timeouts
     for i in range(len(threads)):
         threads[i].join()
-    print 'All threads have finished (or timedout)'
+    print 'All threads have finished'
     print 'Below are the responses received'
     print results
     # Assumes that at least someone returned the right answer
     return results[0]
 
-# Deal with one socket in the multicast/multireceive
+# Deal with one socket/server in the multicast/multireceive
 def singlesendrecv(thesocket, i, newmsg, msgnum, results):
     print "Got into a thread for the socket", thesocket.getsockname()
-    # Here, we need to check that this socket is updated with the latest messages
-    # If not, we need to send the old messages first, before moving on
-    # Based on portacks[i], if portacks[i] + 1 < msgnum, then we need to send
-    # all the messages stored in the messqueue up to msgnum
+    print "The latest message this socket has ACKED is", portacks[i]
+    print "This message is numbered", msgnum
 
+    # If this server did not ACK the latest query, we need to resend it
+    if portacks[i] + 1 < msgnum:
+        print "We're behind and we need to resend before moving on"
+    else:
+        print "We're right on time"
 
+    # ----------------------------------------------------------------------------
 
-    # Now that we're updated, send the new message
-    # print "Going to send:"
-    # print newmsg
+    # Send the new query to the data server
     thesocket.sendall(newmsg)
     print '---------------------'
-    # print 'READING FROM SOCKET:', thesocket.getsockname()
     returnstr = ''
-    # print 'before time out'
-    # print thesocket.gettimeout()
-    # Receive from this socket; there's a timeout limit
+    # Wait for a response from the data server; time-out is enabled
     try:
         nextrecvstr = thesocket.recv(4096)
         while nextrecvstr != '':
             returnstr += nextrecvstr
-            # print returnstr
-            # if we got the 'end' message, then don't keep asking to receive, and just move on
+            # Check if the terminating string was received
+            # This string will tell us to stop expecting messages, and
+            # process the query immediately, without waiting for the timeout any more
             checkterminal = returnstr.split('\n\n\nR')
-            # print checkterminal
             if len(checkterminal) < 2 or checkterminal[1] != 'END':
-                # print 'NEED TO KEEP READING'
                 nextrecvstr = thesocket.recv(4096)
             else:
-                # print 'FINISHED READING'
                 returnstr = checkterminal[0]
                 break
-    # Catch the timeout! If we time out, close the socket and return from this function
-    # This was checked and made sure to be correctly timing out
-
-    # Socket will try to keep receiving data until time out
-    # Need wait to check that received message is done
+    # If time out occurs, then we know the data server was stalled
+    # We will simply close the socket and query the data server again in the next connection
     except socket.timeout:
-        # print 'got a timeout!'
+        print 'Got a timeout!'
         thesocket.close()
         return
-    # print 'got a response from the data server, though'
-    # At the point, we know we received a response
-    # print returnstr
-    # Get the message number from the returnstr and take it out of the message
+    # Get the message number out of the data server's response
     messagenumber = returnstr.split('\n')[0]
-    print 'received message number', messagenumber
-    # Need to actually check that this is the message number
-    # print returnstr.split('\n')[1:]
     returnstr = '\n'.join(returnstr.split('\n')[1:])
-    # print 'the message on its own'
-    # print returnstr
     # Based on the received message number, update the lowest message number seen
     # Notice that the total ordering on the data server side means this will never skip numbers
     portacks[i] = max(portacks[i], messagenumber)
@@ -147,8 +134,9 @@ def singlesendrecv(thesocket, i, newmsg, msgnum, results):
     # After updating the lowest message number seen, return an ACK for the received message
     thesocket.sendall(messagenumber + '\n')
     print '---------------------'
+    # After returning the ACK for the response, we can close the sock!
     thesocket.close()
-    # Append received message to results list, making sure to lock
+    # Finally, append received message to the 'results' list
     resultslock.acquire()
     results.append(returnstr)
     resultslock.release()

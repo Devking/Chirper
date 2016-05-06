@@ -7,9 +7,10 @@
 #include "mappings.h"
 using namespace std;
 
-extern mutex mappingMutex;       // Create mutex for locking the unordered map
-extern mutex userManifestMutex;  // Create mutex for the user manifest text file
-extern mutex emailManifestMutex; // Create mutex for the email manifest text file
+// Extern global mutexes, for separate compilation
+extern mutex mappingMutex;
+extern mutex userManifestMutex;
+extern mutex emailManifestMutex;
 
 // Query  1: CHKEML (Check Email)
 string checkEmail (const string& emailToFind);
