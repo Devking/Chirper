@@ -45,6 +45,9 @@ Things to Keep Track Of:
 - consistency (all data servers should have the same data)
 - network overhead (don't send too many messages)
 
+- IMPOSE TOTAL ORDERING BY USING MESSAGE NUMBERS
+    - QUEUE UP QUERIES (STRINGS) OTHERWISE
+
 --------------------
 
 Book Solution:

@@ -28,7 +28,7 @@ void initAPIMapping (std::unordered_map<std::string, int>& actions) {
 // Before the server even creates the socket, it needs to make sure that we have a lock
 // for every user text file that already exists in the system
 void initMutexMapping (std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    // Open the user manifest file. 
+    // Open the user manifest file.
     // A mutex is not needed, since this happens before the multithreading.
     std::ifstream userFile("manifest/user.txt");
     // If user manifest file does not exist, make it.
@@ -50,7 +50,10 @@ void sendMessage (const std::string& returnString, char buff[MAXLINE], int connf
     const char* thing = returnString.c_str();
     sprintf(buff, "%s", thing);
     int len = strlen(buff);
-    if (len != write(connfd, buff, strlen(buff))) {
-        perror("write to connection failed");
+    try {
+        if (len != write(connfd, buff, strlen(buff)))
+            perror("write to connection failed");
+    } catch (const std::exception& e) {
+        fprintf(stderr, "Caught an exception on write\n");
     }
 }

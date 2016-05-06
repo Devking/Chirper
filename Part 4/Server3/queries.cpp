@@ -17,7 +17,7 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 
 // Check if email already exists in the system
-void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd, 
+void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd,
                  std::mutex* emailManifestMutex) {
     // Obtain lock to access the email manifest file
     emailManifestMutex->lock();
@@ -30,7 +30,7 @@ void checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd,
     } else {
         string email;
         bool foundEmail = false;
-        while (getline(emailFile, email, ',')) 
+        while (getline(emailFile, email, ','))
             if (email == emailToFind) foundEmail = true;
         sendMessage(foundEmail ? "YES" : "NO", buff, connfd);
     }
@@ -69,7 +69,7 @@ bool checkUser (const string& username, std::mutex* userManifestMutex) {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Check if the password is correct for a specific user
-void checkPassword (int newline, const string& query, const string& username, 
+void checkPassword (int newline, const string& query, const string& username,
                     char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                     std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     string returnString = "NO";
@@ -137,7 +137,7 @@ bool checkFriend (const string& username, const string& friendName, std::mutex* 
 }
 
 // A driver function for the checkFriend() method to parse the query first
-void checkFriendParse (int newline, const string& query, const string& username, 
+void checkFriendParse (int newline, const string& query, const string& username,
                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                        std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Parse the query to get the friend name to check
@@ -145,7 +145,7 @@ void checkFriendParse (int newline, const string& query, const string& username,
     int friendlength = secondnewline - newline - 1;
     string friendName = query.substr(newline+1, friendlength);
     // Respond to the query based on whether the friend exists in the list or not
-    sendMessage(checkFriend(username, friendName, mappingMutex, fileMutexes) 
+    sendMessage(checkFriend(username, friendName, mappingMutex, fileMutexes)
                 ? "YES" : "NO", buff, connfd);
 }
 
@@ -154,7 +154,7 @@ void checkFriendParse (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Create a new user
-void createUser (int newline, const string& query, const string& username, 
+void createUser (int newline, const string& query, const string& username,
                  char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                   std::unordered_map<std::string, std::mutex*>& fileMutexes,
                   std::mutex* emailManifestMutex, std::mutex* userManifestMutex) {
@@ -166,7 +166,7 @@ void createUser (int newline, const string& query, const string& username,
     int thirdnewline = query.find('\n', secondnewline+1);
     int emaillength = thirdnewline - secondnewline - 1;
     string email = query.substr(secondnewline+1, emaillength);
-    
+
     // Get the lock to access the user->mutex map
     mappingMutex->lock();
     // Add the current user to the user->mutex map
@@ -197,6 +197,8 @@ void createUser (int newline, const string& query, const string& username,
     userFile << username << ",";
     userFile.close();
     userManifestMutex->unlock();
+
+    sendMessage("YES", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -261,6 +263,8 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd, std::mu
     mailFile2 << mailString;
     mailFile2.close();
     emailManifestMutex->unlock();
+
+    sendMessage("YES", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -268,7 +272,7 @@ void deleteUser (const string& username, char buff[MAXLINE], int connfd, std::mu
 ///////////////////////////////////////////////////////////////////////////////
 
 // Post a chirp for a user
-void createChirp (int newline, const string& query, const string& username, 
+void createChirp (int newline, const string& query, const string& username,
                   char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                   std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Get the chirp content
@@ -322,6 +326,8 @@ void createChirp (int newline, const string& query, const string& username,
     }
     // Release the lock to access the user->mutex map
     mappingMutex->unlock();
+
+    sendMessage("YES", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -375,7 +381,7 @@ void deleteChirp (const string& username, int chirpid, std::mutex* mappingMutex,
 }
 
 // Driver function to delete a user's chirp
-void deleteChirpParse (int newline, const string& query, const string& username, 
+void deleteChirpParse (int newline, const string& query, const string& username,
                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                        std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Parse the query to get the chirpid
@@ -384,6 +390,7 @@ void deleteChirpParse (int newline, const string& query, const string& username,
     int chirpid = atoi(query.substr(newline+1, valuelength).c_str());
     // Delete the chirp based on the chirpid
     deleteChirp(username, chirpid, mappingMutex, fileMutexes);
+    sendMessage("YES", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -391,7 +398,7 @@ void deleteChirpParse (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Add friend to a user's friend list (assumes the friend exists)
-void addFriend (int newline, const string& query, const string& username, 
+void addFriend (int newline, const string& query, const string& username,
                 char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                 std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Get the name of the friend
@@ -434,6 +441,7 @@ void addFriend (int newline, const string& query, const string& username,
     }
     // Release the lock to access the user->mutex map
     mappingMutex->unlock();
+    sendMessage("YES", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -479,7 +487,7 @@ void deleteFriend (const string& username, const string& friendName, std::mutex*
 }
 
 // Driver for removing friend from friend's list
-void deleteFriendParse (int newline, const string& query, const string& username, 
+void deleteFriendParse (int newline, const string& query, const string& username,
                         char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Parse the query and get the name of the friend
@@ -488,6 +496,7 @@ void deleteFriendParse (int newline, const string& query, const string& username
     string friendName = query.substr(newline+1, friendlength);
     // Delete the friend specified in the query
     deleteFriend(username, friendName, mappingMutex, fileMutexes);
+    sendMessage("YES", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -521,7 +530,7 @@ void checkValidFriends (const string& username, std::mutex* userManifestMutex, s
             mainFile.close();
         }
         // Release the lock to access the user file
-        fileMutexes[username]->unlock();        
+        fileMutexes[username]->unlock();
     }
     // Release the lock to access the user->mutex map
     mappingMutex->unlock();
@@ -536,7 +545,7 @@ void checkValidFriends (const string& username, std::mutex* userManifestMutex, s
 }
 
 // Populate the home page that a user sees when he/she/they logs in
-void populatePage (const string& username, char buff[MAXLINE], int connfd, 
+void populatePage (const string& username, char buff[MAXLINE], int connfd,
                    char readbuff[MAXLINE], std::mutex* userManifestMutex, std::mutex* mappingMutex,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // This will first make sure that the friend's list is valid
@@ -673,7 +682,7 @@ void moveUserUp (const string& username, int userid, std::mutex* mappingMutex,
 }
 
 // Driver function for moving a user up on the following list
-void moveUserUpParse (int newline, const string& query, const string& username, 
+void moveUserUpParse (int newline, const string& query, const string& username,
                       char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                       std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Parse the query and get the userid to move up
@@ -682,6 +691,7 @@ void moveUserUpParse (int newline, const string& query, const string& username,
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     // Perform move up on the userid
     moveUserUp(username, userid, mappingMutex, fileMutexes);
+    sendMessage("YES", buff, connfd);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -734,7 +744,7 @@ void moveUserDown (const string& username, int userid, std::mutex* mappingMutex,
 }
 
 // Driver function for moving a user down on the following list
-void moveUserDownParse (int newline, const string& query, const string& username, 
+void moveUserDownParse (int newline, const string& query, const string& username,
                         char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
                         std::unordered_map<std::string, std::mutex*>& fileMutexes) {
     // Parse the query and get the userid to move down
@@ -743,4 +753,5 @@ void moveUserDownParse (int newline, const string& query, const string& username
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     // Perform move down on the userid
     moveUserDown(username, userid, mappingMutex, fileMutexes);
+    sendMessage("YES", buff, connfd);
 }

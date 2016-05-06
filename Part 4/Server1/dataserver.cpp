@@ -20,6 +20,8 @@
 #include <thread>
 #include <mutex>
 
+#include <iostream>
+
 // When a connection is accepted, each thread will perform this function to process the relevant query
 void processQuery (int connfd, const std::unordered_map<std::string, int>& actions,
                    std::unordered_map<std::string, std::mutex*>& fileMutexes, std::mutex* mappingMutex,
@@ -36,8 +38,16 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
     // Break up the client's message based on API-defined formatting
     std::string query = readbuff;
-    int space = query.find(' ');
+    // Get the message number
     int newline = query.find('\n');
+    std::string msgnumstring = query.substr(0, newline);
+    int msgnum = stoi(msgnumstring);
+    fprintf(stderr, "Message Number: %d\n", msgnum);
+    // Get the query itself
+    query = query.substr(newline + 1);
+    std::cout << query << std::endl;
+    int space = query.find(' ');
+    newline = query.find('\n');
     int fieldLength = newline - space - 1;
     std::string action = query.substr(0, space);
     std::string field = query.substr(space + 1, fieldLength);

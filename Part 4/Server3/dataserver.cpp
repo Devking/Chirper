@@ -36,6 +36,13 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
     // Break up the client's message based on API-defined formatting
     std::string query = readbuff;
+    // Get the message number
+    //int newline = query.find('\n');
+    //std::string msgnumstring = query.substr(0, newline);
+    //int msgnum = stoi(msgnumstring);
+    //fprintf(stderr, "Message Number: %d\n", msgnum);
+    //query = query.substr(newline);
+    // Get the query itself
     int space = query.find(' ');
     int newline = query.find('\n');
     int fieldLength = newline - space - 1;
