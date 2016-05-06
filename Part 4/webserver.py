@@ -10,7 +10,11 @@ import select
 
 # Define the address and port of our data server
 host = 'localhost'
-ports = [9000, 9100, 9200, 9300, 9400]
+ports = [9000, 9100]
+
+# Keep track of the latest message ACKed by each data server
+portacks = [0, 0]
+messqueue = []
 msgnum = 0
 
 # Send a message through a socket and receive a response
@@ -20,37 +24,47 @@ def socketsendrecv(sendmsg):
     msgnum = msgnum + 1
     # Append msgnum to the front of the message
     newmsg = str(msgnum) + '\n' + sendmsg
+    # Add current message to list of un-acked messages
+    messqueue.append((msgnum, newmsg))
+    # Update list of un-acked messages based on lowest message acked
+    minack = min(portacks)
+    print minack
+    print "Message Queue:", messqueue
+    while messqueue[0][0] <= minack:
+        messqueue.pop(0)
     sockets = []
     i = 0
     for i in xrange(len(ports) - 1, -1, -1):
         try:
             s = socket.socket()
+            # Enforce timeouts for the socket
+            s.settimeout(0.5)
             s.connect((host, ports[i]))
             s.sendall(newmsg)
-            # s.setblocking(0)
             sockets.append(s)
-        except:
+        except IOError:
             print 'Could not connect to web server at', ports[i]
             ports.remove(ports[i])
+            portacks.remove(portacks[i])
+    print "Message Queue:", messqueue
     print "Port List To Access:", ports
+    print "Port ACKS:", portacks
     print "Sockets List:"
     for s in sockets:
         print s.getsockname()
-    # readable, _, _ = select.select(sockets, [], [])
-    # print readable
-    # print len(readable)
-    # for s in readable:
-    for s in sockets:
+    for i in xrange(len(sockets) - 1, -1, -1):
         print '---------------------'
-        print 'READING FROM SOCKET:', s.getsockname()
+        print 'READING FROM SOCKET:', sockets[i].getsockname()
         returnstr = ''
-        nextrecvstr = s.recv(4096)
+        nextrecvstr = sockets[i].recv(4096)
         while nextrecvstr != '':
             returnstr += nextrecvstr
-            nextrecvstr = s.recv(4096)
+            nextrecvstr = sockets[i].recv(4096)
         print returnstr
+        # Update the lowest message seen so far
+        portacks[i] = portacks[i] + 1
         print '---------------------'
-        s.close()
+        sockets[i].close()
     return returnstr
 
 # Create the Flask object

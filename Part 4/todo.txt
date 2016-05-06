@@ -35,6 +35,9 @@ how failure of one server is handled by the system.
 Python Web Server is the "front end"
 C++ Data Server is the "Replica Manager"
 
+https://en.wikipedia.org/wiki/State_machine_replication
+https://jaksa.wordpress.com/2009/05/01/active-and-passive-replication-in-distributed-systems/
+
 Active Replication:
     - have many data servers all running at the same time
     - each data server must keep track of its own replicate of the information
