@@ -40,7 +40,9 @@ def socketsendrecv(sendmsg):
     minack = min(portacks)
     print 'MIN ACK', minack
     print 'ACK # at front of mess queue', messqueue[0][0]
+    print 'remove front?', messqueue[0][0] < minack
     while len(messqueue) > 0 and messqueue[0][0] < minack:
+        print "POPPING OFF FRONT OF QUEUE"
         messqueue.pop(0)
     print messqueue
     # Connect to sockets based on 'ports' list; remove dead servers from ports list
@@ -106,10 +108,10 @@ def singlesendrecv(thesocket, i, newmsg, msgnum, results):
         nextrecvstr = thesocket.recv(4096)
         while nextrecvstr != '':
             returnstr += nextrecvstr
-            print returnstr
+            # print returnstr
             # if we got the 'end' message, then don't keep asking to receive, and just move on
             checkterminal = returnstr.split('\n\n\nR')
-            print checkterminal
+            # print checkterminal
             if len(checkterminal) < 2 or checkterminal[1] != 'END':
                 print 'NEED TO KEEP READING'
                 nextrecvstr = thesocket.recv(4096)

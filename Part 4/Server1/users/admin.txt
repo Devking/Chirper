@@ -4,10 +4,7 @@ admin@admin.com
 a
 test
 bob
-6
-Double-query
-Test chirp mechanism
-Something wicked this way comes.
+3
 Test a chirp with one data server down!
 Test a chirp with multiple data servers running!
 Feel the Bern!

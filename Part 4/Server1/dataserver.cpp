@@ -50,7 +50,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     int newline = query.find('\n');
     std::string msgnumstring = query.substr(0, newline);
     int msgnum = stoi(msgnumstring);
-    std::string sendnum = msgnum + "\n";
+    std::string sendnum = std::to_string(msgnum) + "\n";
 
     // Based on the message number, will use the condition variable to wait until the correct
     // next message arrives
@@ -78,8 +78,8 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     std::cout << "Got through for msg " << msgnum << std::endl;
 
     // First send the message number of this current message back to the client
-    // sendMessage(sendnum, buff, connfd);
-    sendMessage("1\n", buff, connfd);
+    sendMessage(sendnum, buff, connfd);
+    // sendMessage("1\n", buff, connfd);
 
     // Start to process the query
     // Unpack the query message itself
