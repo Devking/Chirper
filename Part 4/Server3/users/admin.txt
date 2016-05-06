@@ -4,6 +4,6 @@ admin@admin.com
 test
 bob
 3
-Test
+Test a chirp with one data server down!
+Test a chirp with multiple data servers running!
 Feel the Bern!
-Rob is a very cool guy!

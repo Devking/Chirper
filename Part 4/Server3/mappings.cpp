@@ -54,6 +54,6 @@ void sendMessage (const std::string& returnString, char buff[MAXLINE], int connf
         if (len != write(connfd, buff, strlen(buff)))
             perror("write to connection failed");
     } catch (const std::exception& e) {
-        fprintf(stderr, "Caught an exception on write\n");
+        perror("hello");
     }
 }

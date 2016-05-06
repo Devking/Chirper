@@ -1,17 +1,36 @@
+Current Issues:
+
+- assumption: servers that go down go down forever
+    - no revival policy
+
+- still need to deal with select
+
+Things That Work:
+
+- multiple data servers / multiple data
+- total ordering and message numbers
+- getting the same queries to/from the different data servers
+- consistency amongst alive data servers
+
+- turns out the following two errors were related to the same thing
+    - weird server starting issue
+    - port list doesn't always clear all ports
+    - issue: deleting element while iterating through loop
+        - solution: just iterate through it backwards
+
+--------------------
+
 Current Assignment:
-
-Oh, no!!!! The server went down. Our client base is furious. We need to reimplement our back end to be more resilient, using replication.
-
-Documentation:
 
 Provide clear documentation describing:
 
 how the data is kept in synch across your replicas.
+    - active replication (via the textbook)
+    - all queries sent to all alive data servers
 how failure of one server is handled by the system.
+    - just dropped out of the system
 
 --------------------
-
-https://jaksa.wordpress.com/2009/05/01/active-and-passive-replication-in-distributed-systems/
 
 Python Web Server is the "front end"
 C++ Data Server is the "Replica Manager"
@@ -26,16 +45,20 @@ Active Replication:
 
     - what if a data server goes down?
         - kill it forever and don't deal with setting it back up
-        - other option (better but more difficult): connect back to it, but need to update it since downtime
+        Q - other option (better but more difficult): connect back to it, but need to update it since downtime
 
-    Q - web server needs to know which data servers are alive
-        - either poll for data servers, or have data servers send a heartbeat message
+    - web server checks to see if someone is alive when connecting to make a query
+        - if that server is dead, then drop it out of the list of things to connect to in the future
 
     - server socket connections are done over TCP, so we're guaranteed in-order delivery to all data servers
     - if the data server is still alive, we're guaranteed that it will receive all of the messages
-        - however, we're not guaranteed on timing
 
-    Q - who to *retrieve* data from? just one server?
+Total Ordering:
+    - if multiple users are active and the client issues different queries at the same time:
+        server 1 may get A B C and server 2 may get C B A
+    - will enforce total ordering using message numbers
+        - each data server will check the expected message number against the received message number
+        - will use a condition variable to block until the expected message number matches current msgnum
 
 --------------------
 
@@ -44,9 +67,6 @@ Things to Keep Track Of:
 - latency (should be relatively quick to access the data)
 - consistency (all data servers should have the same data)
 - network overhead (don't send too many messages)
-
-- IMPOSE TOTAL ORDERING BY USING MESSAGE NUMBERS
-    - QUEUE UP QUERIES (STRINGS) OTHERWISE
 
 --------------------
 

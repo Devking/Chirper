@@ -10,7 +10,7 @@ import select
 
 # Define the address and port of our data server
 host = 'localhost'
-ports = [9000, 9100, 9200, 9300, 9400, 9500, 9600]
+ports = [9000, 9100, 9200]
 msgnum = 0
 
 # Send a message through a socket and receive a response
@@ -18,23 +18,24 @@ def socketsendrecv(sendmsg):
     # Increment message number
     global msgnum
     msgnum = msgnum + 1
-    print msgnum
     # Append msgnum to the front of the message
     newmsg = str(msgnum) + '\n' + sendmsg
     sockets = []
-    for port in ports:
-        s = socket.socket()
+    i = 0
+    for i in xrange(len(ports) - 1, -1, -1):
         try:
-            s.connect((host, port))
+            s = socket.socket()
+            s.connect((host, ports[i]))
             s.sendall(newmsg)
             # s.setblocking(0)
             sockets.append(s)
         except:
-            print 'Could not connect to web server at', port
-            ports.remove(port)
-            continue
+            print 'Could not connect to web server at', ports[i]
+            ports.remove(ports[i])
     print "Port List To Access:", ports
-    print "Sockets List:", sockets
+    print "Sockets List:"
+    for s in sockets:
+        print s.getsockname()
     # readable, _, _ = select.select(sockets, [], [])
     # print readable
     # print len(readable)
@@ -49,7 +50,6 @@ def socketsendrecv(sendmsg):
             nextrecvstr = s.recv(4096)
         print returnstr
         print '---------------------'
-    for s in sockets:
         s.close()
     return returnstr
 
