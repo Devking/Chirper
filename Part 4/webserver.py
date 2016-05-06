@@ -2,7 +2,7 @@
 # Code Written By: Wells Santo and Patrick Kingchatchaval
 
 # Python Web server runs on localhost:8000
-# C++ Data server runs on localhost:9000
+# C++ Data servers run on localhost, ports 9000, 9100, 9200, 9300, 9400
 
 from flask import Flask, render_template, redirect, request, url_for, session
 import socket
@@ -10,7 +10,7 @@ import select
 
 # Define the address and port of our data server
 host = 'localhost'
-ports = [9000, 9100, 9200]
+ports = [9000, 9100, 9200, 9300, 9400]
 msgnum = 0
 
 # Send a message through a socket and receive a response
@@ -42,7 +42,7 @@ def socketsendrecv(sendmsg):
     # for s in readable:
     for s in sockets:
         print '---------------------'
-        print 'READING FROM A SOCKET:'
+        print 'READING FROM SOCKET:', s.getsockname()
         returnstr = ''
         nextrecvstr = s.recv(4096)
         while nextrecvstr != '':
