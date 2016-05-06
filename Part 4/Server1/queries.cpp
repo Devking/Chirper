@@ -12,16 +12,19 @@
 #include <unordered_map>
 using namespace std;
 
+mutex mappingMutex;       // Create mutex for locking the unordered map
+mutex userManifestMutex;  // Create mutex for the user manifest text file
+mutex emailManifestMutex; // Create mutex for the email manifest text file
+
 ///////////////////////////////////////////////////////////////////////////////
 // Query  1: CHKEML (Check Email)
 ///////////////////////////////////////////////////////////////////////////////
 
 // Check if email already exists in the system
-string checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd,
-                 std::mutex* emailManifestMutex) {
+string checkEmail (const string& emailToFind) {
     string messageToSend = "";
     // Obtain lock to access the email manifest file
-    emailManifestMutex->lock();
+    emailManifestMutex.lock();
     ifstream emailFile("manifest/email.txt");
     // If the email manifest file does not exist, create it
     if (!emailFile) {
@@ -37,7 +40,7 @@ string checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd,
     }
     emailFile.close();
     // Release the email manifest file lock
-    emailManifestMutex->unlock();
+    emailManifestMutex.unlock();
     return messageToSend;
 }
 
@@ -46,9 +49,9 @@ string checkEmail (const string& emailToFind, char buff[MAXLINE], int connfd,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Check if user already exists in the system
-bool checkUser (const string& username, std::mutex* userManifestMutex) {
+bool checkUser (const string& username) {
     // Obtain lock to access the user manifest file
-    userManifestMutex->lock();
+    userManifestMutex.lock();
     ifstream userFile("manifest/user.txt");
     bool foundUser = false;
     // If user manifest file does not exist, make it
@@ -62,8 +65,12 @@ bool checkUser (const string& username, std::mutex* userManifestMutex) {
     }
     userFile.close();
     // Release the user manifest file lock
-    userManifestMutex->unlock();
+    userManifestMutex.unlock();
     return foundUser;
+}
+
+string checkUserParse (const string& username) {
+    return checkUser(username) ? "YES" : "NO";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,15 +79,14 @@ bool checkUser (const string& username, std::mutex* userManifestMutex) {
 
 // Check if the password is correct for a specific user
 string checkPassword (int newline, const string& query, const string& username,
-                    char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                    std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                      unordered_map<string, mutex*>& fileMutexes) {
     string returnString = "NO";
     // Break up the query message to get the password
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
     string password = query.substr(newline+1, passwordlength);
-    // Obtain the lock to access the user->mutex map
-    mappingMutex->lock();
+    // Obtain the lock to access the usermutex map
+    mappingMutex.lock();
     // See if the user exists in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Obtain the lock to access the user file
@@ -96,8 +102,8 @@ string checkPassword (int newline, const string& query, const string& username,
         // Release the lock to access the user file
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
     // Send either YES or NO if the password matches
     return returnString;
 }
@@ -107,11 +113,11 @@ string checkPassword (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Check if friend already exists in the friend list
-bool checkFriend (const string& username, const string& friendName, std::mutex* mappingMutex,
-                  std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+bool checkFriend (const string& username, const string& friendName,
+                  unordered_map<string, mutex*>& fileMutexes) {
     bool friendExists = false;
-    // Obtain the lock to access the user->mutex map
-    mappingMutex->lock();
+    // Obtain the lock to access the usermutex map
+    mappingMutex.lock();
     // See if the user exists in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Obtain the lock to access the user file
@@ -133,22 +139,20 @@ bool checkFriend (const string& username, const string& friendName, std::mutex* 
         // Release the lock to access the user file
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
     return friendExists;
 }
 
 // A driver function for the checkFriend() method to parse the query first
 string checkFriendParse (int newline, const string& query, const string& username,
-                       char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                       std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                         unordered_map<string, mutex*>& fileMutexes) {
     // Parse the query to get the friend name to check
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
     string friendName = query.substr(newline+1, friendlength);
     // Respond to the query based on whether the friend exists in the list or not
-    return checkFriend(username, friendName, mappingMutex, fileMutexes)
-                ? "YES" : "NO";
+    return checkFriend(username, friendName, fileMutexes) ? "YES" : "NO";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -157,9 +161,7 @@ string checkFriendParse (int newline, const string& query, const string& usernam
 
 // Create a new user
 string createUser (int newline, const string& query, const string& username,
-                 char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                  std::unordered_map<std::string, std::mutex*>& fileMutexes,
-                  std::mutex* emailManifestMutex, std::mutex* userManifestMutex) {
+                   unordered_map<string, mutex*>& fileMutexes) {
     // Break up the query to get the password
     int secondnewline = query.find('\n', newline+1);
     int passwordlength = secondnewline - newline - 1;
@@ -169,9 +171,9 @@ string createUser (int newline, const string& query, const string& username,
     int emaillength = thirdnewline - secondnewline - 1;
     string email = query.substr(secondnewline+1, emaillength);
 
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
-    // Add the current user to the user->mutex map
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
+    // Add the current user to the usermutex map
     fileMutexes[username] = new mutex;
     // Get the lock to access the user file
     fileMutexes[username]->lock();
@@ -183,22 +185,22 @@ string createUser (int newline, const string& query, const string& username,
     mainFile << "0\n0\n";
     // Release the lock to access the user file
     fileMutexes[username]->unlock();
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 
     // Update the email manifest file (lock & unlock)
-    emailManifestMutex->lock();
+    emailManifestMutex.lock();
     ofstream mailFile("manifest/email.txt", ios_base::app);
     mailFile << email << ",";
     mailFile.close();
-    emailManifestMutex->unlock();
+    emailManifestMutex.unlock();
 
     // Update the user manifest file (lock & unlock)
-    userManifestMutex->lock();
+    userManifestMutex.lock();
     ofstream userFile("manifest/user.txt", ios_base::app);
     userFile << username << ",";
     userFile.close();
-    userManifestMutex->unlock();
+    userManifestMutex.unlock();
 
     return "YES";
 }
@@ -208,11 +210,9 @@ string createUser (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Delete a user
-string deleteUser (const string& username, char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                  std::unordered_map<std::string, std::mutex*>& fileMutexes,
-                  std::mutex* emailManifestMutex, std::mutex* userManifestMutex) {
+string deleteUser (const string& username, unordered_map<string, mutex*>& fileMutexes) {
     // Delete the username from the username text file (lock & unlock)
-    userManifestMutex->lock();
+    userManifestMutex.lock();
     ifstream nameFile("manifest/user.txt");
     string nameString = "";
     if (nameFile) {
@@ -223,11 +223,11 @@ string deleteUser (const string& username, char buff[MAXLINE], int connfd, std::
     nameFile.close();
     ofstream nameFile2("manifest/user.txt");
     nameFile2 << nameString;
-    userManifestMutex->unlock();
+    userManifestMutex.unlock();
 
     string email;
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -248,11 +248,11 @@ string deleteUser (const string& username, char buff[MAXLINE], int connfd, std::
     } else {
         return "NO";
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 
     // Delete the email from the email text file (lock & unlock)
-    emailManifestMutex->lock();
+    emailManifestMutex.lock();
     ifstream mailFile("manifest/email.txt");
     string mailString = "";
     if (mailFile) {
@@ -264,7 +264,7 @@ string deleteUser (const string& username, char buff[MAXLINE], int connfd, std::
     ofstream mailFile2("manifest/email.txt");
     mailFile2 << mailString;
     mailFile2.close();
-    emailManifestMutex->unlock();
+    emailManifestMutex.unlock();
 
     return "YES";
 }
@@ -275,14 +275,13 @@ string deleteUser (const string& username, char buff[MAXLINE], int connfd, std::
 
 // Post a chirp for a user
 string createChirp (int newline, const string& query, const string& username,
-                  char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                  std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                    unordered_map<string, mutex*>& fileMutexes) {
     // Get the chirp content
     int secondnewline = query.find('\n', newline+1);
     int chirplength = secondnewline - newline - 1;
     string chirp = query.substr(newline+1, chirplength);
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -326,8 +325,8 @@ string createChirp (int newline, const string& query, const string& username,
         // Release the lock to access the user file
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 
     return "YES";
 }
@@ -337,10 +336,9 @@ string createChirp (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Delete a user's chirp
-void deleteChirp (const string& username, int chirpid, std::mutex* mappingMutex,
-                  std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+void deleteChirp (const string& username, int chirpid, unordered_map<string, mutex*>& fileMutexes) {
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -378,20 +376,19 @@ void deleteChirp (const string& username, int chirpid, std::mutex* mappingMutex,
         // Release the lock to access the user file
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 }
 
 // Driver function to delete a user's chirp
 string deleteChirpParse (int newline, const string& query, const string& username,
-                       char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                       std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                         unordered_map<string, mutex*>& fileMutexes) {
     // Parse the query to get the chirpid
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int chirpid = atoi(query.substr(newline+1, valuelength).c_str());
     // Delete the chirp based on the chirpid
-    deleteChirp(username, chirpid, mappingMutex, fileMutexes);
+    deleteChirp(username, chirpid, fileMutexes);
     return "YES";
 }
 
@@ -401,14 +398,13 @@ string deleteChirpParse (int newline, const string& query, const string& usernam
 
 // Add friend to a user's friend list (assumes the friend exists)
 string addFriend (int newline, const string& query, const string& username,
-                char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                  unordered_map<string, mutex*>& fileMutexes) {
     // Get the name of the friend
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
     string friendName = query.substr(newline+1, friendlength);
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -438,11 +434,11 @@ string addFriend (int newline, const string& query, const string& username,
             mainFile2 << fileString;
             mainFile2.close();
         }
-        // Release the lock to access the user->mutex map
+        // Release the lock to access the usermutex map
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
     return "YES";
 }
 
@@ -451,10 +447,10 @@ string addFriend (int newline, const string& query, const string& username,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Remove friend from friend's list
-void deleteFriend (const string& username, const string& friendName, std::mutex* mappingMutex,
-                   std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+void deleteFriend (const string& username, const string& friendName,
+                   unordered_map<string, mutex*>& fileMutexes) {
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -481,23 +477,22 @@ void deleteFriend (const string& username, const string& friendName, std::mutex*
         // Overwrite the file, this time without the friend that we have removed
         ofstream mainFile2(fileName.c_str());
         mainFile2 << fileString;
-        // Release the lock to access the user->mutex map
+        // Release the lock to access the usermutex map
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 }
 
 // Driver for removing friend from friend's list
 string deleteFriendParse (int newline, const string& query, const string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                          unordered_map<string, mutex*>& fileMutexes) {
     // Parse the query and get the name of the friend
     int secondnewline = query.find('\n', newline+1);
     int friendlength = secondnewline - newline - 1;
     string friendName = query.substr(newline+1, friendlength);
     // Delete the friend specified in the query
-    deleteFriend(username, friendName, mappingMutex, fileMutexes);
+    deleteFriend(username, friendName, fileMutexes);
     return "YES";
 }
 
@@ -506,12 +501,11 @@ string deleteFriendParse (int newline, const string& query, const string& userna
 ///////////////////////////////////////////////////////////////////////////////
 
 // Check to make sure that the friends that this user has are all still valid
-void checkValidFriends (const string& username, std::mutex* userManifestMutex, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+void checkValidFriends (const string& username, unordered_map<string, mutex*>& fileMutexes) {
     // Keep a vector of the friend names
     vector<string> friendsList;
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -534,27 +528,25 @@ void checkValidFriends (const string& username, std::mutex* userManifestMutex, s
         // Release the lock to access the user file
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 
     // Once you have the friend names, check if each is valid
     for (int i = 0; i < friendsList.size(); i++) {
         // If friend does not exist, then delete friend
-        if (!checkUser(friendsList[i], userManifestMutex))
-            deleteFriend(username, friendsList[i], mappingMutex, fileMutexes);
+        if (!checkUser(friendsList[i]))
+            deleteFriend(username, friendsList[i], fileMutexes);
     }
 
 }
 
 // Populate the home page that a user sees when he/she/they logs in
-string populatePage (const string& username, char buff[MAXLINE], int connfd,
-                   char readbuff[MAXLINE], std::mutex* userManifestMutex, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+string populatePage (const string& username, unordered_map<string, mutex*>& fileMutexes) {
     string messageToSend = "";
     // This will first make sure that the friend's list is valid
-    checkValidFriends(username, userManifestMutex, mappingMutex, fileMutexes);
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+    checkValidFriends(username, fileMutexes);
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -574,7 +566,7 @@ string populatePage (const string& username, char buff[MAXLINE], int connfd,
         vector<string> friendsList;
         for (int i = 0; i < noFriends; i++) {
             getline(mainFile, temp);
-            if (checkUser(temp, userManifestMutex))
+            if (checkUser(temp))
                 friendsList.push_back(temp);
             else
                 noFriends--;
@@ -628,8 +620,8 @@ string populatePage (const string& username, char buff[MAXLINE], int connfd,
             fileMutexes[friendsList[i]]->unlock();
         }
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
     return messageToSend;
 }
 
@@ -638,10 +630,9 @@ string populatePage (const string& username, char buff[MAXLINE], int connfd,
 ///////////////////////////////////////////////////////////////////////////////
 
 // Move a user up on our following list
-void moveUserUp (const string& username, int userid, std::mutex* mappingMutex,
-                 std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+void moveUserUp (const string& username, int userid, unordered_map<string, mutex*>& fileMutexes) {
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -678,23 +669,22 @@ void moveUserUp (const string& username, int userid, std::mutex* mappingMutex,
             ofstream mainFile2(fileName.c_str());
             mainFile2 << fileString;
         }
-        // Release the lock to access the user->mutex map
+        // Release the lock to access the usermutex map
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 }
 
 // Driver function for moving a user up on the following list
 string moveUserUpParse (int newline, const string& query, const string& username,
-                      char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                      std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                        unordered_map<string, mutex*>& fileMutexes) {
     // Parse the query and get the userid to move up
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     // Perform move up on the userid
-    moveUserUp(username, userid, mappingMutex, fileMutexes);
+    moveUserUp(username, userid, fileMutexes);
     return "YES";
 }
 
@@ -703,10 +693,10 @@ string moveUserUpParse (int newline, const string& query, const string& username
 ///////////////////////////////////////////////////////////////////////////////
 
 // Move a user down on our following list
-void moveUserDown (const string& username, int userid, std::mutex* mappingMutex,
-                   std::unordered_map<std::string, std::mutex*>& fileMutexes) {
-    // Get the lock to access the user->mutex map
-    mappingMutex->lock();
+void moveUserDown (const string& username, int userid,
+                   unordered_map<string, mutex*>& fileMutexes) {
+    // Get the lock to access the usermutex map
+    mappingMutex.lock();
     // Check if the user is still in the map
     if (fileMutexes.find(username) != fileMutexes.end()) {
         // Get the lock to access the user file
@@ -740,22 +730,21 @@ void moveUserDown (const string& username, int userid, std::mutex* mappingMutex,
             ofstream mainFile2(fileName.c_str());
             mainFile2 << fileString;
         }
-        // Release the lock to access the user->mutex map
+        // Release the lock to access the usermutex map
         fileMutexes[username]->unlock();
     }
-    // Release the lock to access the user->mutex map
-    mappingMutex->unlock();
+    // Release the lock to access the usermutex map
+    mappingMutex.unlock();
 }
 
 // Driver function for moving a user down on the following list
 string moveUserDownParse (int newline, const string& query, const string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes) {
+                          unordered_map<string, mutex*>& fileMutexes) {
     // Parse the query and get the userid to move down
     int secondnewline = query.find('\n', newline+1);
     int valuelength = secondnewline - newline - 1;
     int userid = atoi(query.substr(newline+1, valuelength).c_str());
     // Perform move down on the userid
-    moveUserDown(username, userid, mappingMutex, fileMutexes);
+    moveUserDown(username, userid, fileMutexes);
     return "YES";
 }

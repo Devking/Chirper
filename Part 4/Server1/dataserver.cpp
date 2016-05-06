@@ -31,8 +31,7 @@ std::mutex oldresponseslock;
 
 // When a connection is accepted, each thread will perform this function to process the relevant query
 void processQuery (int connfd, const std::unordered_map<std::string, int>& actions,
-                   std::unordered_map<std::string, std::mutex*>& fileMutexes, std::mutex* mappingMutex,
-                   std::mutex* userManifestMutex, std::mutex* emailManifestMutex) {
+                   std::unordered_map<std::string, std::mutex*>& fileMutexes) {
 
     // Read the received message/query itself
     char buff     [MAXLINE];
@@ -75,7 +74,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     // We can start doing work on this query then
 
     // Increment the expectedmsgnum and notify everyone else to check their condition again
-    std::cout << "Got through for msg " << msgnum << std::endl;
+    // std::cout << "Got through for msg " << msgnum << std::endl;
 
     // First send the message number of this current message back to the client
     sendMessage(sendnum, buff, connfd);
@@ -95,53 +94,24 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     int actionID = (itr != actions.end()) ? itr->second : 0;
     std::string messageToSend = "";
     switch (actionID) {
-        case CHKEML: messageToSend = checkEmail       (field, buff, connfd, emailManifestMutex); break;
-
-        case CHKUSR: messageToSend = checkUser(field, userManifestMutex)
-                                       ? "YES" : "NO";                           break;
-
-        case CHKPWD: messageToSend = checkPassword    (newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        case CHKFND: messageToSend = checkFriendParse (newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        case CRTUSR: messageToSend = createUser       (newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes,
-                                       emailManifestMutex, userManifestMutex);   break;
-
-        case DELUSR: messageToSend = deleteUser       (field, buff, connfd,
-                                       mappingMutex, fileMutexes,
-                                       emailManifestMutex, userManifestMutex);   break;
-
-        case CRTCHP: messageToSend = createChirp      (newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        case DELCHP: messageToSend = deleteChirpParse (newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        case ADDFND: messageToSend = addFriend        (newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        case DELFND: messageToSend = deleteFriendParse(newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        case POPLAT: messageToSend = populatePage     (field, buff, connfd, readbuff,
-                                       userManifestMutex, mappingMutex,
-                                       fileMutexes);                             break;
-
-        case MOVEUP: messageToSend = moveUserUpParse  (newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        case MOVEDN: messageToSend = moveUserDownParse(newline, query, field, buff, connfd,
-                                       mappingMutex, fileMutexes);               break;
-
-        default:                                                                 break;
+        case CHKEML: messageToSend = checkEmail       (field); break;
+        case CHKUSR: messageToSend = checkUserParse   (field); break;
+        case CHKPWD: messageToSend = checkPassword    (newline, query, field, fileMutexes); break;
+        case CHKFND: messageToSend = checkFriendParse (newline, query, field, fileMutexes); break;
+        case CRTUSR: messageToSend = createUser       (newline, query, field, fileMutexes); break;
+        case DELUSR: messageToSend = deleteUser       (field, fileMutexes); break;
+        case CRTCHP: messageToSend = createChirp      (newline, query, field, fileMutexes); break;
+        case DELCHP: messageToSend = deleteChirpParse (newline, query, field, fileMutexes); break;
+        case ADDFND: messageToSend = addFriend        (newline, query, field, fileMutexes); break;
+        case DELFND: messageToSend = deleteFriendParse(newline, query, field, fileMutexes); break;
+        case POPLAT: messageToSend = populatePage     (field, fileMutexes); break;
+        case MOVEUP: messageToSend = moveUserUpParse  (newline, query, field, fileMutexes); break;
+        case MOVEDN: messageToSend = moveUserDownParse(newline, query, field, fileMutexes); break;
+        default: break;
     }
 
     // Send message all at once
     sendMessage(messageToSend, buff, connfd);
-    std::cout << "MESSAGE:\n" << messageToSend << "END MESSAGE" << std::endl;
 
     // Send termination string to notify web server that we're done sending the response
     sendMessage(terminationstring, buff, connfd);
@@ -209,10 +179,6 @@ int main(int argc, char* argv[]) {
     std::unordered_map<std::string, std::mutex*> fileMutexes;
     initMutexMapping(fileMutexes);
 
-    std::mutex mappingMutex;       // Create mutex for locking the unordered map
-    std::mutex userManifestMutex;  // Create mutex for the user manifest text file
-    std::mutex emailManifestMutex; // Create mutex for the email manifest text file
-
     // Initialize variables for sockets
     int    listenfd, connfd;     // Unix file descriptors
     struct sockaddr_in servaddr; // Note C use of struct
@@ -253,8 +219,7 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "A Python client is connected!\n");
 
         // Spin off a new thread to process the query of the current connection
-        std::thread newThread(processQuery, connfd, std::cref(actions), std::ref(fileMutexes),
-                              &mappingMutex, &userManifestMutex, &emailManifestMutex);
+        std::thread newThread(processQuery, connfd, std::cref(actions), std::ref(fileMutexes));
         newThread.detach();
     }
 }

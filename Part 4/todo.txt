@@ -2,8 +2,7 @@ Current Issues:
 
 - assumption: servers that go down go down forever
     - no revival policy
-
-- threading to deal with multicast / multiresponse
+    - no mid-start policy
 
 ----
 
@@ -19,6 +18,8 @@ Things That Work:
     - port list doesn't always clear all ports
     - issue: deleting element while iterating through loop
         - solution: just iterate through it backwards
+
+- threading to deal with multicast / multiresponse
 
 --------------------
 

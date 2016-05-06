@@ -4,93 +4,76 @@
 #include <string>
 #include <mutex>
 #include <unordered_map>
-
 #include "mappings.h"
+using namespace std;
+
+extern mutex mappingMutex;       // Create mutex for locking the unordered map
+extern mutex userManifestMutex;  // Create mutex for the user manifest text file
+extern mutex emailManifestMutex; // Create mutex for the email manifest text file
 
 // Query  1: CHKEML (Check Email)
-std::string checkEmail        (const std::string& emailToFind, char buff[MAXLINE], int connfd,
-                        std::mutex* emailManifestMutex);
+string checkEmail (const string& emailToFind);
 
 // Query  2: CHKUSR (Check User)
-bool checkUser         (const std::string& username, std::mutex* userManifestMutex);
+bool checkUser (const string& username);
+
+string checkUserParse (const string& username);
 
 // Query  3: CHKPWD (Check Password)
-std::string checkPassword     (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string checkPassword (int newline, const string& query, const string& username,
+                      unordered_map<string, mutex*>& fileMutexes);
 
 // Query  4: CHKFND (Check Friend)
-bool checkFriend       (const std::string& fileName, const std::string& friendName,
-                        std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+bool checkFriend (const string& fileName, const string& friendName,
+                  unordered_map<string, mutex*>& fileMutexes);
 
-std::string checkFriendParse  (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string checkFriendParse (int newline, const string& query, const string& username,
+                        unordered_map<string, mutex*>& fileMutexes);
 
 // Query  5: CRTUSR (Create User)
-std::string createUser        (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes,
-                        std::mutex* emailManifestMutex, std::mutex* userManifestMutex);
+string createUser (int newline, const string& query, const string& username,
+                   unordered_map<string, mutex*>& fileMutexes);
 
 // Query  6: DELUSR (Delete User)
-std::string deleteUser        (const std::string& username, char buff[MAXLINE], int connfd,
-                        std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes,
-                        std::mutex* emailManifestMutex, std::mutex* userManifestMutex);
+string deleteUser (const string& username, unordered_map<string, mutex*>& fileMutexes);
 
 // Query  7: CRTCHP (Create Chirp)
-std::string createChirp       (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string createChirp (int newline, const string& query, const string& username,
+                    unordered_map<string, mutex*>& fileMutexes);
 
 // Query  8: DELCHP (Delete Chirp)
-void deleteChirp       (const std::string& fileName, int chirpid, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+void deleteChirp (const string& fileName, int chirpid,
+                  unordered_map<string, mutex*>& fileMutexes);
 
-std::string deleteChirpParse  (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string deleteChirpParse (int newline, const string& query, const string& username,
+                         unordered_map<string, mutex*>& fileMutexes);
 
 // Query  9: ADDFND (Add Friend)
-std::string addFriend         (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string addFriend (int newline, const string& query, const string& username,
+                  unordered_map<string, mutex*>& fileMutexes);
 
 // Query 10: DELFND (Delete Friend)
-void deleteFriend      (const std::string& fileName, const std::string& friendName,
-                        std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+void deleteFriend (const string& fileName, const string& friendName,
+                   unordered_map<string, mutex*>& fileMutexes);
 
-std::string deleteFriendParse (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string deleteFriendParse (int newline, const string& query, const string& username,
+                          unordered_map<string, mutex*>& fileMutexes);
 
 // Query 11: POPLAT (Populate Page)
-void checkValidFriends (const std::string& fileName, std::mutex* userManifestMutex,
-                        std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+void checkValidFriends (const string& fileName, unordered_map<string, mutex*>& fileMutexes);
 
-std::string populatePage      (const std::string& username, char buff[MAXLINE], int connfd,
-                        char readbuff[MAXLINE], std::mutex* userManifestMutex,
-                        std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string populatePage (const string& username, unordered_map<string, mutex*>& fileMutexes);
 
 // Query 12: MOVEUP (Move Friend Up)
-void moveUserUp        (const std::string& fileName, int userid, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+void moveUserUp (const string& fileName, int userid, unordered_map<string, mutex*>& fileMutexes);
 
-std::string moveUserUpParse   (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string moveUserUpParse (int newline, const string& query, const string& username,
+                        unordered_map<string, mutex*>& fileMutexes);
 
 // Query 13: MOVEDN (Move Friend Down)
-void moveUserDown      (const std::string& fileName, int userid, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+void moveUserDown (const string& fileName, int userid, unordered_map<string, mutex*>& fileMutexes);
 
-std::string moveUserDownParse (int newline, const std::string& query, const std::string& username,
-                        char buff[MAXLINE], int connfd, std::mutex* mappingMutex,
-                        std::unordered_map<std::string, std::mutex*>& fileMutexes);
+string moveUserDownParse (int newline, const string& query, const string& username,
+                          unordered_map<string, mutex*>& fileMutexes);
 
 #endif
