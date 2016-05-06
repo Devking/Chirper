@@ -11,10 +11,10 @@ import threading
 
 # Define the address and port of our data server
 host = 'localhost'
-ports = [9000, 9100]
+ports = [9000, 9100, 9200, 9300, 9400]
 
 # Keep track of the latest message ACKed by each data server
-portacks = [0, 0]
+portacks = [0, 0, 0, 0, 0]
 messqueue = []
 msgnum = 0
 
@@ -95,13 +95,13 @@ def singlesendrecv(thesocket, i, newmsg, msgnum, results):
 
 
     # Now that we're updated, send the new message
-    print "Going to send:"
-    print newmsg
+    # print "Going to send:"
+    # print newmsg
     thesocket.sendall(newmsg)
     print '---------------------'
-    print 'READING FROM SOCKET:', thesocket.getsockname()
+    # print 'READING FROM SOCKET:', thesocket.getsockname()
     returnstr = ''
-    print 'before time out'
+    # print 'before time out'
     # print thesocket.gettimeout()
     # Receive from this socket; there's a timeout limit
     try:
@@ -113,10 +113,10 @@ def singlesendrecv(thesocket, i, newmsg, msgnum, results):
             checkterminal = returnstr.split('\n\n\nR')
             # print checkterminal
             if len(checkterminal) < 2 or checkterminal[1] != 'END':
-                print 'NEED TO KEEP READING'
+                # print 'NEED TO KEEP READING'
                 nextrecvstr = thesocket.recv(4096)
             else:
-                print 'FINISHED READING'
+                # print 'FINISHED READING'
                 returnstr = checkterminal[0]
                 break
     # Catch the timeout! If we time out, close the socket and return from this function
@@ -125,23 +125,24 @@ def singlesendrecv(thesocket, i, newmsg, msgnum, results):
     # Socket will try to keep receiving data until time out
     # Need wait to check that received message is done
     except socket.timeout:
-        print 'got a timeout!'
+        # print 'got a timeout!'
         thesocket.close()
         return
-    print 'got a response from the data server, though'
+    # print 'got a response from the data server, though'
     # At the point, we know we received a response
-    print returnstr
+    # print returnstr
     # Get the message number from the returnstr and take it out of the message
     messagenumber = returnstr.split('\n')[0]
     print 'received message number', messagenumber
     # Need to actually check that this is the message number
     # print returnstr.split('\n')[1:]
     returnstr = '\n'.join(returnstr.split('\n')[1:])
-    print 'the message on its own'
+    # print 'the message on its own'
     # print returnstr
     # Based on the received message number, update the lowest message number seen
     # Notice that the total ordering on the data server side means this will never skip numbers
     portacks[i] = max(portacks[i], messagenumber)
+    # This gets stuck at 9 for some reason
     print 'New lowest ACK number:', portacks[i]
     # After updating the lowest message number seen, return an ACK for the received message
     thesocket.sendall(messagenumber + '\n')

@@ -79,7 +79,6 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
     // First send the message number of this current message back to the client
     sendMessage(sendnum, buff, connfd);
-    // sendMessage("1\n", buff, connfd);
 
     // Start to process the query
     // Unpack the query message itself
@@ -94,50 +93,55 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     // Determine which action to take using the query mapping
     auto itr = actions.find(action);
     int actionID = (itr != actions.end()) ? itr->second : 0;
+    std::string messageToSend = "";
     switch (actionID) {
-        case CHKEML: checkEmail       (field, buff, connfd, emailManifestMutex); break;
+        case CHKEML: messageToSend = checkEmail       (field, buff, connfd, emailManifestMutex); break;
 
-        case CHKUSR: sendMessage      (checkUser(field, userManifestMutex)
-                                       ? "YES" : "NO", buff, connfd);            break;
+        case CHKUSR: messageToSend = checkUser(field, userManifestMutex)
+                                       ? "YES" : "NO";                           break;
 
-        case CHKPWD: checkPassword    (newline, query, field, buff, connfd,
+        case CHKPWD: messageToSend = checkPassword    (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case CHKFND: checkFriendParse (newline, query, field, buff, connfd,
+        case CHKFND: messageToSend = checkFriendParse (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case CRTUSR: createUser       (newline, query, field, buff, connfd,
+        case CRTUSR: messageToSend = createUser       (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes,
                                        emailManifestMutex, userManifestMutex);   break;
 
-        case DELUSR: deleteUser       (field, buff, connfd,
+        case DELUSR: messageToSend = deleteUser       (field, buff, connfd,
                                        mappingMutex, fileMutexes,
                                        emailManifestMutex, userManifestMutex);   break;
 
-        case CRTCHP: createChirp      (newline, query, field, buff, connfd,
+        case CRTCHP: messageToSend = createChirp      (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case DELCHP: deleteChirpParse (newline, query, field, buff, connfd,
+        case DELCHP: messageToSend = deleteChirpParse (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case ADDFND: addFriend        (newline, query, field, buff, connfd,
+        case ADDFND: messageToSend = addFriend        (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case DELFND: deleteFriendParse(newline, query, field, buff, connfd,
+        case DELFND: messageToSend = deleteFriendParse(newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case POPLAT: populatePage     (field, buff, connfd, readbuff,
+        case POPLAT: messageToSend = populatePage     (field, buff, connfd, readbuff,
                                        userManifestMutex, mappingMutex,
                                        fileMutexes);                             break;
 
-        case MOVEUP: moveUserUpParse  (newline, query, field, buff, connfd,
+        case MOVEUP: messageToSend = moveUserUpParse  (newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
-        case MOVEDN: moveUserDownParse(newline, query, field, buff, connfd,
+        case MOVEDN: messageToSend = moveUserDownParse(newline, query, field, buff, connfd,
                                        mappingMutex, fileMutexes);               break;
 
         default:                                                                 break;
     }
+
+    // Send message all at once
+    sendMessage(messageToSend, buff, connfd);
+    std::cout << "MESSAGE:\n" << messageToSend << "END MESSAGE" << std::endl;
 
     // Send termination string to notify web server that we're done sending the response
     sendMessage(terminationstring, buff, connfd);
@@ -146,7 +150,7 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
     // Need to get what we'd return as a response message and add it to the old responses map
     oldresponseslock.lock();
-    oldresponses[msgnum] = "Test";
+    oldresponses[msgnum] = messageToSend;
     oldresponseslock.unlock();
 
     std::cout << "Now awaiting the ACK." << std::endl;

@@ -1,7 +1,6 @@
 pass
 admin@admin.com
-3
-a
+2
 test
 bob
 3

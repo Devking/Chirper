@@ -1,11 +1,10 @@
 pass
 admin@admin.com
-2
+3
+a
 test
 bob
-5
-Test chirp mechanism
-Test chirp mechanism
+3
 Test a chirp with one data server down!
 Test a chirp with multiple data servers running!
 Feel the Bern!

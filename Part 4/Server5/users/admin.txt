@@ -1,11 +1,9 @@
 pass
 admin@admin.com
-3
-a
+2
 test
 bob
-4
-Something wicked this way comes.
+3
 Test a chirp with one data server down!
 Test a chirp with multiple data servers running!
 Feel the Bern!
