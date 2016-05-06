@@ -18,69 +18,124 @@ portacks = [0, 0]
 messqueue = []
 msgnum = 0
 
+# Thread results lock
+resultslock = threading.Lock()
+
 # Send a message through a socket and receive a response
 def socketsendrecv(sendmsg):
+    print '** BEGIN SOCKET SEND AND RECEIVE **'
     # Increment message number
     global msgnum
     msgnum = msgnum + 1
-    # Append msgnum to the front of the message
+    print 'ABOUT TO SEND MSGNUM', msgnum
+    # Append msgnum to the front of the message to send
     newmsg = str(msgnum) + '\n' + sendmsg
+    print 'NEW MESSAGE:'
+    print newmsg
     # Add current message to list of un-acked messages
     messqueue.append((msgnum, newmsg))
-    # Update list of un-acked messages based on lowest message acked
+    print messqueue
+    # Update list of un-acked messages to remove messages that everyone's acked
     minack = min(portacks)
-    print minack
-    print "Message Queue:", messqueue
     while messqueue[0][0] <= minack:
         messqueue.pop(0)
-    # Attempt to connect to existing sockets; remove dead servers from ports list
+    # Connect to sockets based on 'ports' list; remove dead servers from ports list
     sockets = []
     i = 0
+    print 'CHECKING SOCKETS'
     for i in xrange(len(ports) - 1, -1, -1):
         try:
             s = socket.socket()
             # Enforce timeouts for the socket
-            s.settimeout(0.5)
+            s.settimeout(1)
             s.connect((host, ports[i]))
             sockets.append(s)
         except IOError:
             print 'Could not connect to web server at', ports[i]
-            ports.remove(ports[i])
-            portacks.remove(portacks[i])
-    # Some debugging printing
-    print "Message Queue:", messqueue
-    print "Port List To Access:", ports
-    print "Port ACKS:", portacks
-    print "Sockets List:"
-    for s in sockets:
-        print s.getsockname()
+            del ports[i]
+            del portacks[i]
+    print 'START THE MULTICAST'
     # Do the multicast/multireceive
     return multicast(sockets, newmsg)
 
 # Do the multicast/multireceive
 def multicast(sockets, newmsg):
-    # To move to thread: Send current query to opened sockets
-    for s in sockets:
-        s.sendall(newmsg)
-    # To move to thread: Get response from opened sockets
-    for i in xrange(len(sockets) - 1, -1, -1):
-        print '---------------------'
-        print 'READING FROM SOCKET:', sockets[i].getsockname()
-        returnstr = ''
-        # Remember to deal with timeouts here
-        nextrecvstr = sockets[i].recv(4096)
-        while nextrecvstr != '':
-            returnstr += nextrecvstr
-            nextrecvstr = sockets[i].recv(4096)
-        print returnstr
-        # Update the lowest message seen so far
-        portacks[i] = portacks[i] + 1
-        print '---------------------'
-        sockets[i].close()
-    # Once the threads all finish or timeout, proceed
-    return returnstr
+    threads = []
+    results = []
+    for i in range(len(sockets)):
+        print 'About to spin off a thread'
+        t = threading.Thread(target = singlesendrecv, args = (sockets[i], i, newmsg, results))
+        print 'Spun off the thread'
+        threads.append(t)
+        t.start()
+    # Since we're working with timeouts, all of the threads will run and do work concurrently
+    # We will wait here until the timeouts happen, but using join
+    for i in range(len(threads)):
+        threads[i].join()
+    print 'All threads have finished (or timedout)'
+    print 'Below are the responses received'
+    print results
+    # Assumes that something is returned
+    print 'The final result:'
+    print results[0]
+    return results[0]
 
 # Deal with one socket in the multicast/multireceive
+def singlesendrecv(thesocket, i, newmsg, results):
+    print "Got into a thread for the socket", thesocket.getsockname()
+    # Here, we need to check that this socket is updated with the latest messages
+    # If not, we need to send the old messages first, before moving on
+
+    # Now that we're updated, send the new message
+    print "Going to send:"
+    print newmsg
+    thesocket.sendall(newmsg)
+    print '---------------------'
+    print 'READING FROM SOCKET:', thesocket.getsockname()
+    returnstr = ''
+    print 'before time out'
+    # print thesocket.gettimeout()
+    # Receive from this socket; there's a timeout limit
+    try:
+        nextrecvstr = thesocket.recv(4096)
+        while nextrecvstr != '':
+            print 'nextrecvstr', nextrecvstr
+            returnstr += nextrecvstr
+            nextrecvstr = thesocket.recv(4096)
+    # Catch the timeout! If we time out, close the socket and return from this function
+    # This was checked and made sure to be correctly timing out
+
+    # Socket will try to keep receiving data until time out
+    # Need wait to check that received message is done
+    except socket.timeout:
+        print 'got a timeout!'
+        # Need to do a different check to see the end of the message was received
+        if returnstr == '':
+            thesocket.close()
+            return
+    print 'got a response from the data server, though'
+    # At the point, we know we received a response
+    # print returnstr
+    # Get the message number from the returnstr and take it out of the message
+    messagenumber = returnstr.split('\n')[0]
+    print 'received message number', messagenumber
+    # Need to actually check that this is the message number
+    # print returnstr.split('\n')[1:]
+    returnstr = '\n'.join(returnstr.split('\n')[1:])
+    print 'the message on its own'
+    # print returnstr
+    # Based on the received message number, update the lowest message number seen
+    # Notice that the total ordering on the data server side means this will never skip numbers
+    portacks[i] = max(portacks[i], messagenumber)
+    print 'New lowest ACK number:', portacks[i]
+    # After updating the lowest message number seen, return an ACK for the received message
+    thesocket.sendall(messagenumber + '\n')
+    print '---------------------'
+    thesocket.close()
+    # Append received message to results list, making sure to lock
+    resultslock.acquire()
+    results.append(returnstr)
+    resultslock.release()
 
 # Create the Flask object
 app = Flask(__name__)

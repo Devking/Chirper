@@ -5,6 +5,8 @@ Current Issues:
 
 - threading to deal with multicast / multiresponse
 
+----
+
 Things That Work:
 
 - multiple data servers / multiple data
@@ -27,8 +29,12 @@ Provide clear documentation describing:
 how the data is kept in synch across your replicas.
     - active replication (via the textbook)
     - all queries sent to all alive data servers
+    - total ordering
 how failure of one server is handled by the system.
     - just dropped out of the system
+    - check on connection; catch exception; don't connect if dead
+    - no revival policy
+        - assumes they do not come back to life and try to reconnect
 
 --------------------
 
