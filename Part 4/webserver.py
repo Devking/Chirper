@@ -23,34 +23,20 @@ resultslock = threading.Lock()
 
 # Send a message through a socket and receive a response
 def socketsendrecv(sendmsg):
-    print '** BEGIN SOCKET SEND AND RECEIVE **'
     # Increment current message number
     global msgnum
     msgnum = msgnum + 1
-    print 'ABOUT TO SEND MSG NUM:', msgnum
     # Append message number to the front of the message to send
     newmsg = str(msgnum) + '\n' + sendmsg
-
     # Add current message to list of un-acked messages, in case we need to resend
     messqueue.append((msgnum, newmsg))
-    print messqueue
-
     # Update list of un-acked messages to remove messages that everyone has acked
-    print 'GETTING MIN ACK'
     minack = min(portacks)
-    print 'MIN ACK', minack
-    print 'ACK # at front of mess queue', messqueue[0][0]
-    print 'remove front?', messqueue[0][0] < minack
-    # Right now this seems to keep popping everything off -- why?
-    #------------------------------------------------------------------
-    while len(messqueue) > 0 and messqueue[0][0] < minack:
-        print "POPPING OFF FRONT OF QUEUE", messqueue[0][0]
+    while len(messqueue) > 0 and messqueue[0][0] <= minack:
         messqueue.pop(0)
-    print messqueue
     # Connect to sockets based on 'ports' list & remove dead servers from ports list
     sockets = []
     i = 0
-    print 'CHECKING SOCKETS'
     for i in xrange(len(ports) - 1, -1, -1):
         try:
             s = socket.socket()
@@ -59,10 +45,9 @@ def socketsendrecv(sendmsg):
             s.connect((host, ports[i]))
             sockets.append(s)
         except IOError:
-            print 'Could not connect to web server at', ports[i]
+            print 'Could not connect to web server at port', ports[i]
             del ports[i]
             del portacks[i]
-    print 'START THE MULTICAST'
     # Do the simultaneous, multithreaded multicast/multireceive
     return multicast(sockets, newmsg, msgnum)
 
@@ -71,7 +56,6 @@ def multicast(sockets, newmsg, msgnum):
     threads = []
     results = []
     for i in range(len(sockets)):
-        print 'About to spin off a thread'
         t = threading.Thread(target = singlesendrecv, args = (sockets[i], i, newmsg, msgnum, results))
         threads.append(t)
         t.start()
@@ -79,29 +63,33 @@ def multicast(sockets, newmsg, msgnum):
     # We're guaranteed not to get stuck here due to enforced timeouts
     for i in range(len(threads)):
         threads[i].join()
-    print 'All threads have finished'
-    print 'Below are the responses received'
-    print results
-    # Assumes that at least someone returned the right answer
+    # Assumes that at least one server returned the right answer
     return results[0]
 
 # Deal with one socket/server in the multicast/multireceive
 def singlesendrecv(thesocket, i, newmsg, msgnum, results):
-    print "Got into a thread for the socket", thesocket.getsockname()
-    print "The latest message this socket has ACKED is", portacks[i]
-    print "This message is numbered", msgnum
-
-    # If this server did not ACK the latest query, we need to resend it
+    # If this server did not ACK the latest queries, we need to resend them
     if portacks[i] + 1 < msgnum:
-        print "We're behind and we need to resend before moving on"
-    else:
-        print "We're right on time"
+        messageDic = dict(messqueue)
+        for j in range(portacks[i]+1, msgnum):
+            queryj = messageDic.get(j)
+            response = threewayshake(thesocket, queryj, i)
+            # If we get a timeout in here, we shouldn't continue
+            if response == '':
+                return
+    # If the ACKing is up-to-date, then send the new query
+    response = threewayshake(thesocket, newmsg, i)
+    if response == '':
+        return
+    # Finally, append received message to the 'results' list
+    resultslock.acquire()
+    results.append(response)
+    resultslock.release()
 
-    # ----------------------------------------------------------------------------
-
-    # Send the new query to the data server
-    thesocket.sendall(newmsg)
-    print '---------------------'
+# Deal with the actual send-recv-send message passing
+def threewayshake(thesocket, msg, i):
+    # Send the query to the data server
+    thesocket.sendall(msg)
     returnstr = ''
     # Wait for a response from the data server; time-out is enabled
     try:
@@ -122,24 +110,17 @@ def singlesendrecv(thesocket, i, newmsg, msgnum, results):
     except socket.timeout:
         print 'Got a timeout!'
         thesocket.close()
-        return
+        return ''
     # Get the message number out of the data server's response
     messagenumber = returnstr.split('\n')[0]
-    returnstr = '\n'.join(returnstr.split('\n')[1:])
     # Based on the received message number, update the lowest message number seen
     # Notice that the total ordering on the data server side means this will never skip numbers
-    portacks[i] = max(portacks[i], messagenumber)
-    # This gets stuck at 9 for some reason
-    print 'New lowest ACK number:', portacks[i]
-    # After updating the lowest message number seen, return an ACK for the received message
+    returnstr = '\n'.join(returnstr.split('\n')[1:])
+    portacks[i] = max(portacks[i], int(messagenumber))
+    # Return an ACK for the received message and then close the socket
     thesocket.sendall(messagenumber + '\n')
-    print '---------------------'
-    # After returning the ACK for the response, we can close the sock!
     thesocket.close()
-    # Finally, append received message to the 'results' list
-    resultslock.acquire()
-    results.append(returnstr)
-    resultslock.release()
+    return returnstr
 
 # Create the Flask object
 app = Flask(__name__)

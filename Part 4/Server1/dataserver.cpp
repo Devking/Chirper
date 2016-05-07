@@ -21,8 +21,6 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <iostream>
-
 int expectedmsgnumber = 1; // Message number to enforce total ordering
 std::mutex msgnumlock;     // Lock to access / update expectedmsgnumber
 std::condition_variable totalorderwait; // Condition variable to enforce total ordering
@@ -91,7 +89,6 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
 
     // Start to process the query
     query = query.substr(newline + 1);
-    std::cout << query << std::endl;
     int space = query.find(' ');
     newline = query.find('\n');
     int fieldLength = newline - space - 1;
@@ -125,15 +122,12 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
     // Send termination string to notify web server that we're done sending the response
     sendMessage(terminationstring, buff, connfd);
 
-    std::cout << "The query was processed successfully." << std::endl;
-
     // Keep track of this response, in case it's needed again in the future
     oldresponseslock.lock();
     oldresponses[msgnum] = messageToSend;
     oldresponseslock.unlock();
 
     // Wait for ACK from the web server to verify our response was received
-    std::cout << "Now awaiting the ACK." << std::endl;
     result = read(connfd, readbuff, MAXLINE);
 
     // Check to see if an ACK was received
@@ -145,7 +139,6 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         std::string ack = readbuff;
         int endofline = ack.find('\n');
         int acknumber = stoi(ack.substr(0, endofline));
-        std::cout << "Got ACK for " << acknumber << std::endl;
         // If we received an ACK, that means the web server got our response;
         // we therefore no longer need to store our response for future use
         oldresponseslock.lock();
@@ -156,7 +149,6 @@ void processQuery (int connfd, const std::unordered_map<std::string, int>& actio
         // we can increment the expected message number and tell everyone to check if they can now go
         expectedmsgnumber = expectedmsgnumber > acknumber ? expectedmsgnumber + 1 : acknumber + 1;
         totalorderwait.notify_all();
-        std::cout << "The ACK processing was successful; moving on" << std::endl;
     }
 
     // Close the connection
