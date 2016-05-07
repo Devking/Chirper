@@ -18,9 +18,8 @@ The not-so-original social media alternative, designed by **Wells Lucas Santo** 
 3. Multithreading and Locks
 	1. Multithreading
 	2. Locks
-4. **Replication**
 
-**For documentation on Part 4 of the Project, please jump to the "Replication" section of this README.**
+**For documentation on Part 4 of the Project, please go to the PART4README.md.**
 
 # 1. The Application Itself
 
