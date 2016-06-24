@@ -1,8 +1,0 @@
-pass
-admin@admin.com
-3
-a
-bob
-test
-1
-Feel the Bern!
